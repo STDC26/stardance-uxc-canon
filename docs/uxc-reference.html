@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stardance UXC — Token Reference</title>
+  <link rel="stylesheet" href="../tokens/sd-tokens.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: var(--sd-font-mono);
+      font-size: var(--sd-font-size-base);
+      background: var(--sd-bg);
+      color: var(--sd-text);
+      padding: var(--sd-space-xl);
+      max-width: 960px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+
+    /* ── Header ── */
+    .page-header {
+      border-bottom: 1px solid var(--sd-border-md);
+      padding-bottom: var(--sd-space-lg);
+      margin-bottom: var(--sd-space-xl);
+    }
+    .page-header h1 {
+      font-family: var(--sd-font-display);
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--sd-text);
+    }
+    .page-header .meta {
+      margin-top: var(--sd-space-xs);
+      color: var(--sd-text-3);
+      font-size: var(--sd-font-size-sm);
+    }
+    .page-header .meta span {
+      margin-right: var(--sd-space-md);
+    }
+    .brand-dot {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--sd-orange);
+      margin-right: 0.5rem;
+      vertical-align: middle;
+    }
+
+    /* ── Sections ── */
+    section {
+      margin-bottom: var(--sd-space-xl);
+    }
+    section h2 {
+      font-family: var(--sd-font-display);
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--sd-text-3);
+      margin-bottom: var(--sd-space-md);
+      padding-bottom: var(--sd-space-xs);
+      border-bottom: 1px solid var(--sd-border);
+    }
+
+    /* ── Swatch Grid ── */
+    .swatch-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--sd-space-md);
+    }
+    .swatch-item {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      min-width: 80px;
+    }
+    .swatch {
+      width: 48px;
+      height: 48px;
+      border-radius: var(--sd-radius-sm);
+      border: 1px solid var(--sd-border-md);
+    }
+    .swatch-label {
+      font-size: var(--sd-font-size-xs);
+      color: var(--sd-text-2);
+      line-height: 1.4;
+    }
+    .swatch-label .token-name {
+      display: block;
+      color: var(--sd-text);
+      font-weight: 500;
+    }
+
+    /* ── Semantic Colour Groups ── */
+    .semantic-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--sd-space-lg);
+    }
+    .semantic-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .semantic-group-label {
+      font-size: var(--sd-font-size-xs);
+      color: var(--sd-text-2);
+      text-transform: capitalize;
+      font-weight: 500;
+      margin-bottom: 2px;
+    }
+    .semantic-swatches {
+      display: flex;
+      gap: 0;
+      border-radius: var(--sd-radius-sm);
+      overflow: hidden;
+      border: 1px solid var(--sd-border-md);
+    }
+    .semantic-swatch {
+      width: 48px;
+      height: 48px;
+    }
+    .semantic-swatch-labels {
+      display: flex;
+      gap: 0;
+    }
+    .semantic-swatch-label {
+      width: 48px;
+      font-size: 9px;
+      color: var(--sd-text-3);
+      text-align: center;
+      padding-top: 3px;
+    }
+
+    /* ── HCTS Trait Swatches ── */
+    .trait-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--sd-space-md);
+    }
+    .trait-item {
+      display: flex;
+      align-items: center;
+      gap: var(--sd-space-sm);
+    }
+    .trait-swatch {
+      width: 32px;
+      height: 32px;
+      border-radius: var(--sd-radius-sm);
+      flex-shrink: 0;
+      border: 1px solid var(--sd-border);
+    }
+    .trait-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .trait-name {
+      font-size: var(--sd-font-size-sm);
+      font-weight: 500;
+      color: var(--sd-text);
+      text-transform: capitalize;
+    }
+    .trait-token {
+      font-size: 10px;
+      color: var(--sd-text-3);
+    }
+
+    /* ── PLA Bands ── */
+    .band-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--sd-space-md);
+    }
+    .band-item {
+      display: flex;
+      align-items: center;
+      gap: var(--sd-space-sm);
+      padding: var(--sd-space-sm) var(--sd-space-md);
+      background: var(--sd-surface);
+      border-radius: var(--sd-radius-md);
+      border: 1px solid var(--sd-border-md);
+      min-width: 180px;
+    }
+    .band-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .band-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .band-name {
+      font-size: var(--sd-font-size-sm);
+      font-weight: 500;
+      color: var(--sd-text);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .band-token {
+      font-size: 10px;
+      color: var(--sd-text-3);
+    }
+
+    /* ── Typography ── */
+    .type-row {
+      padding: var(--sd-space-sm) 0;
+      border-bottom: 1px solid var(--sd-border);
+      display: grid;
+      grid-template-columns: 160px 1fr 100px;
+      align-items: baseline;
+      gap: var(--sd-space-md);
+    }
+    .type-row:last-child { border-bottom: none; }
+    .type-token {
+      font-size: var(--sd-font-size-xs);
+      color: var(--sd-text-3);
+    }
+    .type-value {
+      font-size: var(--sd-font-size-xs);
+      color: var(--sd-text-3);
+      text-align: right;
+    }
+
+    /* ── Spacing ── */
+    .spacing-row {
+      display: flex;
+      align-items: center;
+      gap: var(--sd-space-md);
+      margin-bottom: var(--sd-space-sm);
+    }
+    .spacing-token {
+      width: 120px;
+      font-size: var(--sd-font-size-xs);
+      color: var(--sd-text-3);
+      flex-shrink: 0;
+    }
+    .spacing-bar {
+      height: 12px;
+      background: var(--sd-orange-dim);
+      border: 1px solid var(--sd-orange-border);
+      border-radius: 2px;
+    }
+    .spacing-value {
+      font-size: var(--sd-font-size-xs);
+      color: var(--sd-text-3);
+      width: 50px;
+      text-align: right;
+    }
+
+    /* ── Radius ── */
+    .radius-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--sd-space-lg);
+    }
+    .radius-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--sd-space-sm);
+    }
+    .radius-demo {
+      width: 64px;
+      height: 64px;
+      background: var(--sd-raised);
+      border: 1px solid var(--sd-border-md);
+    }
+    .radius-label {
+      text-align: center;
+    }
+    .radius-token {
+      display: block;
+      font-size: var(--sd-font-size-xs);
+      color: var(--sd-text);
+      font-weight: 500;
+    }
+    .radius-value {
+      display: block;
+      font-size: 10px;
+      color: var(--sd-text-3);
+    }
+
+    /* ── Shadow ── */
+    .shadow-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--sd-space-lg);
+    }
+    .shadow-item {
+      display: flex;
+      flex-direction: column;
+      gap: var(--sd-space-sm);
+    }
+    .shadow-card {
+      width: 120px;
+      height: 72px;
+      background: var(--sd-surface);
+      border-radius: var(--sd-radius-md);
+      border: 1px solid var(--sd-border);
+    }
+    .shadow-label {
+      font-size: var(--sd-font-size-xs);
+      color: var(--sd-text-2);
+    }
+    .shadow-label .token-name {
+      display: block;
+      color: var(--sd-text);
+      font-weight: 500;
+    }
+
+    /* ── Motion ── */
+    .motion-row {
+      display: grid;
+      grid-template-columns: 160px 1fr;
+      align-items: center;
+      gap: var(--sd-space-md);
+      padding: var(--sd-space-sm) 0;
+      border-bottom: 1px solid var(--sd-border);
+    }
+    .motion-row:last-child { border-bottom: none; }
+    .motion-token {
+      font-size: var(--sd-font-size-xs);
+      color: var(--sd-text-3);
+    }
+    .motion-value {
+      font-size: var(--sd-font-size-sm);
+      color: var(--sd-text);
+      font-weight: 500;
+    }
+    .motion-demo {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--sd-orange);
+      margin-left: var(--sd-space-sm);
+      cursor: pointer;
+      vertical-align: middle;
+    }
+    .motion-demo:hover {
+      transform: scale(1.8);
+    }
+
+    /* ── Surface swatches ── */
+    .surface-swatch {
+      width: 48px;
+      height: 48px;
+      border-radius: var(--sd-radius-sm);
+      border: 1px solid var(--sd-border-md);
+    }
+    .surface-dark {
+      border-color: rgba(255,255,255,0.12);
+    }
+
+    /* ── Dark group ── */
+    .dark-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--sd-space-md);
+      padding: var(--sd-space-md);
+      background: #0a0a0f;
+      border-radius: var(--sd-radius-md);
+      margin-top: var(--sd-space-sm);
+    }
+    .dark-group .swatch-label .token-name {
+      color: #e4e2db;
+    }
+    .dark-group .swatch-label {
+      color: #9b9890;
+    }
+
+  </style>
+</head>
+<body>
+
+  <!-- ── Header ── -->
+  <header class="page-header">
+    <h1><span class="brand-dot"></span>Stardance UXC — Token Reference</h1>
+    <div class="meta">
+      <span>v1.0</span>
+      <span>2026-03-29</span>
+      <span>GC1 Phase 3 — P3-01</span>
+    </div>
+  </header>
+
+  <!-- ── 1. Brand Colour ── -->
+  <section>
+    <h2>Colour — Brand</h2>
+    <div class="swatch-grid">
+      <div class="swatch-item">
+        <div class="swatch" style="background:#E8751A;"></div>
+        <div class="swatch-label">
+          <span class="token-name">--sd-orange</span>
+          #E8751A
+        </div>
+      </div>
+      <div class="swatch-item">
+        <div class="swatch" style="background:rgba(232,117,26,0.12);"></div>
+        <div class="swatch-label">
+          <span class="token-name">--sd-orange-dim</span>
+          rgba(232,117,26,.12)
+        </div>
+      </div>
+      <div class="swatch-item">
+        <div class="swatch" style="background:rgba(232,117,26,0.30);"></div>
+        <div class="swatch-label">
+          <span class="token-name">--sd-orange-border</span>
+          rgba(232,117,26,.30)
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── 2. Semantic Colours ── -->
+  <section>
+    <h2>Colour — Semantic</h2>
+    <div class="semantic-grid">
+
+      <div class="semantic-group">
+        <div class="semantic-group-label">Success</div>
+        <div class="semantic-swatches">
+          <div class="semantic-swatch" style="background:#1d9e75;" title="--sd-success"></div>
+          <div class="semantic-swatch" style="background:rgba(29,158,117,0.08);" title="--sd-success-dim"></div>
+          <div class="semantic-swatch" style="background:rgba(29,158,117,0.28);" title="--sd-success-border"></div>
+        </div>
+        <div class="semantic-swatch-labels">
+          <div class="semantic-swatch-label">full</div>
+          <div class="semantic-swatch-label">dim</div>
+          <div class="semantic-swatch-label">border</div>
+        </div>
+        <div class="swatch-label" style="margin-top:4px;font-size:10px;color:var(--sd-text-3);">#1d9e75</div>
+      </div>
+
+      <div class="semantic-group">
+        <div class="semantic-group-label">Warning</div>
+        <div class="semantic-swatches">
+          <div class="semantic-swatch" style="background:#c8973a;" title="--sd-warning"></div>
+          <div class="semantic-swatch" style="background:rgba(200,151,58,0.10);" title="--sd-warning-dim"></div>
+          <div class="semantic-swatch" style="background:rgba(200,151,58,0.30);" title="--sd-warning-border"></div>
+        </div>
+        <div class="semantic-swatch-labels">
+          <div class="semantic-swatch-label">full</div>
+          <div class="semantic-swatch-label">dim</div>
+          <div class="semantic-swatch-label">border</div>
+        </div>
+        <div class="swatch-label" style="margin-top:4px;font-size:10px;color:var(--sd-text-3);">#c8973a</div>
+      </div>
+
+      <div class="semantic-group">
+        <div class="semantic-group-label">Danger</div>
+        <div class="semantic-swatches">
+          <div class="semantic-swatch" style="background:#c03030;" title="--sd-danger"></div>
+          <div class="semantic-swatch" style="background:rgba(192,48,48,0.12);" title="--sd-danger-dim"></div>
+          <div class="semantic-swatch" style="background:rgba(192,48,48,0.30);" title="--sd-danger-border"></div>
+        </div>
+        <div class="semantic-swatch-labels">
+          <div class="semantic-swatch-label">full</div>
+          <div class="semantic-swatch-label">dim</div>
+          <div class="semantic-swatch-label">border</div>
+        </div>
+        <div class="swatch-label" style="margin-top:4px;font-size:10px;color:var(--sd-text-3);">#c03030</div>
+      </div>
+
+      <div class="semantic-group">
+        <div class="semantic-group-label">Info</div>
+        <div class="semantic-swatches">
+          <div class="semantic-swatch" style="background:#378add;" title="--sd-info"></div>
+          <div class="semantic-swatch" style="background:rgba(55,138,221,0.10);" title="--sd-info-dim"></div>
+          <div class="semantic-swatch" style="background:rgba(55,138,221,0.30);" title="--sd-info-border"></div>
+        </div>
+        <div class="semantic-swatch-labels">
+          <div class="semantic-swatch-label">full</div>
+          <div class="semantic-swatch-label">dim</div>
+          <div class="semantic-swatch-label">border</div>
+        </div>
+        <div class="swatch-label" style="margin-top:4px;font-size:10px;color:var(--sd-text-3);">#378add</div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ── 3. Surface ── -->
+  <section>
+    <h2>Colour — Surface</h2>
+    <div style="margin-bottom:var(--sd-space-sm);font-size:var(--sd-font-size-xs);color:var(--sd-text-3);">Light mode</div>
+    <div class="swatch-grid" style="margin-bottom:var(--sd-space-md);">
+      <div class="swatch-item">
+        <div class="swatch surface-swatch" style="background:#f8f7f4;"></div>
+        <div class="swatch-label"><span class="token-name">--sd-bg</span>#f8f7f4</div>
+      </div>
+      <div class="swatch-item">
+        <div class="swatch surface-swatch" style="background:#ffffff;"></div>
+        <div class="swatch-label"><span class="token-name">--sd-surface</span>#ffffff</div>
+      </div>
+      <div class="swatch-item">
+        <div class="swatch surface-swatch" style="background:#f2f1ee;"></div>
+        <div class="swatch-label"><span class="token-name">--sd-elevated</span>#f2f1ee</div>
+      </div>
+      <div class="swatch-item">
+        <div class="swatch surface-swatch" style="background:#eae9e6;"></div>
+        <div class="swatch-label"><span class="token-name">--sd-raised</span>#eae9e6</div>
+      </div>
+    </div>
+    <div style="margin-bottom:var(--sd-space-sm);font-size:var(--sd-font-size-xs);color:var(--sd-text-3);">Dark mode</div>
+    <div class="dark-group">
+      <div class="swatch-item">
+        <div class="swatch surface-swatch surface-dark" style="background:#0a0a0f;"></div>
+        <div class="swatch-label"><span class="token-name">--sd-bg-dark</span>#0a0a0f</div>
+      </div>
+      <div class="swatch-item">
+        <div class="swatch surface-swatch surface-dark" style="background:#0f1018;"></div>
+        <div class="swatch-label"><span class="token-name">--sd-surface-dark</span>#0f1018</div>
+      </div>
+      <div class="swatch-item">
+        <div class="swatch surface-swatch surface-dark" style="background:#161922;"></div>
+        <div class="swatch-label"><span class="token-name">--sd-elevated-dark</span>#161922</div>
+      </div>
+      <div class="swatch-item">
+        <div class="swatch surface-swatch surface-dark" style="background:#1d2130;"></div>
+        <div class="swatch-label"><span class="token-name">--sd-raised-dark</span>#1d2130</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── 4. HCTS Trait Colours ── -->
+  <section>
+    <h2>HCTS Trait Colours</h2>
+    <div class="trait-grid">
+      <div class="trait-item">
+        <div class="trait-swatch" style="background:#6d4fc9;"></div>
+        <div class="trait-info">
+          <span class="trait-name">Presence</span>
+          <span class="trait-token">--sd-trait-presence · #6d4fc9</span>
+        </div>
+      </div>
+      <div class="trait-item">
+        <div class="trait-swatch" style="background:#1a5fa8;"></div>
+        <div class="trait-info">
+          <span class="trait-name">Trust</span>
+          <span class="trait-token">--sd-trait-trust · #1a5fa8</span>
+        </div>
+      </div>
+      <div class="trait-item">
+        <div class="trait-swatch" style="background:#0f6e4a;"></div>
+        <div class="trait-info">
+          <span class="trait-name">Authenticity</span>
+          <span class="trait-token">--sd-trait-authenticity · #0f6e4a</span>
+        </div>
+      </div>
+      <div class="trait-item">
+        <div class="trait-swatch" style="background:#E8751A;"></div>
+        <div class="trait-info">
+          <span class="trait-name">Momentum</span>
+          <span class="trait-token">--sd-trait-momentum · #E8751A</span>
+        </div>
+      </div>
+      <div class="trait-item">
+        <div class="trait-swatch" style="background:#9a6f1a;"></div>
+        <div class="trait-info">
+          <span class="trait-name">Taste</span>
+          <span class="trait-token">--sd-trait-taste · #9a6f1a</span>
+        </div>
+      </div>
+      <div class="trait-item">
+        <div class="trait-swatch" style="background:#b02020;"></div>
+        <div class="trait-info">
+          <span class="trait-name">Empathy</span>
+          <span class="trait-token">--sd-trait-empathy · #b02020</span>
+        </div>
+      </div>
+      <div class="trait-item">
+        <div class="trait-swatch" style="background:#0891B2;"></div>
+        <div class="trait-info">
+          <span class="trait-name">Autonomy</span>
+          <span class="trait-token">--sd-trait-autonomy · #0891B2</span>
+        </div>
+      </div>
+      <div class="trait-item">
+        <div class="trait-swatch" style="background:#6d4fc9;"></div>
+        <div class="trait-info">
+          <span class="trait-name">Resonance</span>
+          <span class="trait-token">--sd-trait-resonance · #6d4fc9</span>
+        </div>
+      </div>
+      <div class="trait-item">
+        <div class="trait-swatch" style="background:#1d9e75;"></div>
+        <div class="trait-info">
+          <span class="trait-name">Ethics</span>
+          <span class="trait-token">--sd-trait-ethics · #1d9e75</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── 5. PLA Band Colours ── -->
+  <section>
+    <h2>PLA Band Colours</h2>
+    <div class="band-grid">
+      <div class="band-item">
+        <div class="band-dot" style="background:#c03030;"></div>
+        <div class="band-info">
+          <span class="band-name">Reject</span>
+          <span class="band-token">--sd-band-reject · #c03030</span>
+        </div>
+      </div>
+      <div class="band-item">
+        <div class="band-dot" style="background:#c8973a;"></div>
+        <div class="band-info">
+          <span class="band-name">Conditional</span>
+          <span class="band-token">--sd-band-conditional · #c8973a</span>
+        </div>
+      </div>
+      <div class="band-item">
+        <div class="band-dot" style="background:#1a5fa8;"></div>
+        <div class="band-info">
+          <span class="band-name">Approved</span>
+          <span class="band-token">--sd-band-approved · #1a5fa8</span>
+        </div>
+      </div>
+      <div class="band-item">
+        <div class="band-dot" style="background:#1d9e75;"></div>
+        <div class="band-info">
+          <span class="band-name">Scale</span>
+          <span class="band-token">--sd-band-scale · #1d9e75</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── 6. Typography ── -->
+  <section>
+    <h2>Typography</h2>
+
+    <div style="margin-bottom:var(--sd-space-md);">
+      <div style="font-family:'Syne',sans-serif;font-size:1.25rem;font-weight:600;color:var(--sd-text);margin-bottom:4px;">
+        Syne — Display
+      </div>
+      <div style="font-size:var(--sd-font-size-xs);color:var(--sd-text-3);margin-bottom:var(--sd-space-sm);">
+        --sd-font-display · 'Syne', sans-serif
+      </div>
+      <div style="font-family:'Syne',sans-serif;font-size:0.85rem;color:var(--sd-text-2);font-weight:400;">
+        ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz 0123456789
+      </div>
+    </div>
+
+    <div style="margin-bottom:var(--sd-space-md);">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:1rem;font-weight:500;color:var(--sd-text);margin-bottom:4px;">
+        IBM Plex Mono — Mono
+      </div>
+      <div style="font-size:var(--sd-font-size-xs);color:var(--sd-text-3);margin-bottom:var(--sd-space-sm);">
+        --sd-font-mono · 'IBM Plex Mono', ui-monospace, monospace
+      </div>
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:0.75rem;color:var(--sd-text-2);">
+        ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz 0123456789
+      </div>
+    </div>
+
+    <div>
+      <div style="font-size:var(--sd-font-size-xs);color:var(--sd-text-3);margin-bottom:var(--sd-space-sm);border-top:1px solid var(--sd-border);padding-top:var(--sd-space-sm);">Size scale</div>
+      <div class="type-row">
+        <span class="type-token">--sd-font-size-base</span>
+        <span style="font-size:13px;">Base text — 13px</span>
+        <span class="type-value">13px</span>
+      </div>
+      <div class="type-row">
+        <span class="type-token">--sd-font-size-sm</span>
+        <span style="font-size:0.65rem;">Small text — 0.65rem</span>
+        <span class="type-value">0.65rem</span>
+      </div>
+      <div class="type-row">
+        <span class="type-token">--sd-font-size-xs</span>
+        <span style="font-size:0.58rem;">Extra small — 0.58rem</span>
+        <span class="type-value">0.58rem</span>
+      </div>
+      <div class="type-row">
+        <span class="type-token">--sd-font-size-label</span>
+        <span style="font-size:0.55rem;letter-spacing:0.06em;text-transform:uppercase;">Label — 0.55rem</span>
+        <span class="type-value">0.55rem</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── 7. Spacing ── -->
+  <section>
+    <h2>Spacing</h2>
+    <div class="spacing-row">
+      <span class="spacing-token">--sd-space-xs</span>
+      <div class="spacing-bar" style="width:calc(0.25rem * 16);"></div>
+      <span class="spacing-value">0.25rem</span>
+    </div>
+    <div class="spacing-row">
+      <span class="spacing-token">--sd-space-sm</span>
+      <div class="spacing-bar" style="width:calc(0.5rem * 16);"></div>
+      <span class="spacing-value">0.5rem</span>
+    </div>
+    <div class="spacing-row">
+      <span class="spacing-token">--sd-space-md</span>
+      <div class="spacing-bar" style="width:calc(1rem * 16);"></div>
+      <span class="spacing-value">1rem</span>
+    </div>
+    <div class="spacing-row">
+      <span class="spacing-token">--sd-space-lg</span>
+      <div class="spacing-bar" style="width:calc(1.5rem * 16);"></div>
+      <span class="spacing-value">1.5rem</span>
+    </div>
+    <div class="spacing-row">
+      <span class="spacing-token">--sd-space-xl</span>
+      <div class="spacing-bar" style="width:calc(2.5rem * 16);"></div>
+      <span class="spacing-value">2.5rem</span>
+    </div>
+  </section>
+
+  <!-- ── 8. Radius ── -->
+  <section>
+    <h2>Radius</h2>
+    <div class="radius-grid">
+      <div class="radius-item">
+        <div class="radius-demo" style="border-radius:4px;"></div>
+        <div class="radius-label">
+          <span class="radius-token">--sd-radius-sm</span>
+          <span class="radius-value">4px</span>
+        </div>
+      </div>
+      <div class="radius-item">
+        <div class="radius-demo" style="border-radius:8px;"></div>
+        <div class="radius-label">
+          <span class="radius-token">--sd-radius-md</span>
+          <span class="radius-value">8px</span>
+        </div>
+      </div>
+      <div class="radius-item">
+        <div class="radius-demo" style="border-radius:12px;"></div>
+        <div class="radius-label">
+          <span class="radius-token">--sd-radius-lg</span>
+          <span class="radius-value">12px</span>
+        </div>
+      </div>
+      <div class="radius-item">
+        <div class="radius-demo" style="border-radius:999px;"></div>
+        <div class="radius-label">
+          <span class="radius-token">--sd-radius-pill</span>
+          <span class="radius-value">999px</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── 9. Shadow ── -->
+  <section>
+    <h2>Shadow</h2>
+    <div class="shadow-grid">
+      <div class="shadow-item">
+        <div class="shadow-card" style="box-shadow:0 1px 4px rgba(0,0,0,0.08);"></div>
+        <div class="shadow-label">
+          <span class="token-name">--sd-shadow-sm</span>
+          0 1px 4px rgba(0,0,0,.08)
+        </div>
+      </div>
+      <div class="shadow-item">
+        <div class="shadow-card" style="box-shadow:0 4px 16px rgba(0,0,0,0.10);"></div>
+        <div class="shadow-label">
+          <span class="token-name">--sd-shadow-md</span>
+          0 4px 16px rgba(0,0,0,.10)
+        </div>
+      </div>
+      <div class="shadow-item">
+        <div class="shadow-card" style="box-shadow:0 8px 32px rgba(0,0,0,0.12);"></div>
+        <div class="shadow-label">
+          <span class="token-name">--sd-shadow-lg</span>
+          0 8px 32px rgba(0,0,0,.12)
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── 10. Motion ── -->
+  <section>
+    <h2>Motion</h2>
+    <div class="motion-row">
+      <span class="motion-token">--sd-transition-fast</span>
+      <span class="motion-value">
+        120ms ease
+        <span class="motion-demo" style="transition:transform 120ms ease;" title="hover to preview"></span>
+      </span>
+    </div>
+    <div class="motion-row">
+      <span class="motion-token">--sd-transition-base</span>
+      <span class="motion-value">
+        200ms ease
+        <span class="motion-demo" style="transition:transform 200ms ease;" title="hover to preview"></span>
+      </span>
+    </div>
+    <div class="motion-row">
+      <span class="motion-token">--sd-transition-slow</span>
+      <span class="motion-value">
+        320ms ease
+        <span class="motion-demo" style="transition:transform 320ms ease;" title="hover to preview"></span>
+      </span>
+    </div>
+  </section>
+
+</body>
+</html>

@@ -1,0 +1,109 @@
+{
+  "_comment": "Legacy token export — GC1 P3-01. Will be regenerated from sd-tokens.css",
+  "color": {
+    "brand": {
+      "orange":        "#E8751A",
+      "orange-dim":    "rgba(232, 117, 26, 0.12)",
+      "orange-border": "rgba(232, 117, 26, 0.30)"
+    },
+    "semantic": {
+      "success":        "#1d9e75",
+      "success-dim":    "rgba(29, 158, 117, 0.08)",
+      "success-border": "rgba(29, 158, 117, 0.28)",
+      "warning":        "#c8973a",
+      "warning-dim":    "rgba(200, 151, 58, 0.10)",
+      "warning-border": "rgba(200, 151, 58, 0.30)",
+      "danger":         "#c03030",
+      "danger-dim":     "rgba(192, 48, 48, 0.12)",
+      "danger-border":  "rgba(192, 48, 48, 0.30)",
+      "info":           "#378add",
+      "info-dim":       "rgba(55, 138, 221, 0.10)",
+      "info-border":    "rgba(55, 138, 221, 0.30)"
+    },
+    "surface": {
+      "light": {
+        "bg":       "#f8f7f4",
+        "surface":  "#ffffff",
+        "elevated": "#f2f1ee",
+        "raised":   "#eae9e6"
+      },
+      "dark": {
+        "bg":       "#0a0a0f",
+        "surface":  "#0f1018",
+        "elevated": "#161922",
+        "raised":   "#1d2130"
+      }
+    },
+    "text": {
+      "light": {
+        "primary":   "#1a1917",
+        "secondary": "#5a5856",
+        "tertiary":  "#9b9890"
+      },
+      "dark": {
+        "primary":   "#e4e2db",
+        "secondary": "#9b9890",
+        "tertiary":  "#5a5856"
+      }
+    },
+    "border": {
+      "light": {
+        "default": "rgba(0, 0, 0, 0.06)",
+        "md":      "rgba(0, 0, 0, 0.12)",
+        "hi":      "rgba(0, 0, 0, 0.20)"
+      },
+      "dark": {
+        "default": "rgba(255, 255, 255, 0.06)",
+        "md":      "rgba(255, 255, 255, 0.10)"
+      }
+    },
+    "hcts": {
+      "presence":     "#6d4fc9",
+      "trust":        "#1a5fa8",
+      "authenticity": "#0f6e4a",
+      "momentum":     "#E8751A",
+      "taste":        "#9a6f1a",
+      "empathy":      "#b02020",
+      "autonomy":     "#0891B2",
+      "resonance":    "#6d4fc9",
+      "ethics":       "#1d9e75"
+    },
+    "pla": {
+      "reject":      "#c03030",
+      "conditional": "#c8973a",
+      "approved":    "#1a5fa8",
+      "scale":       "#1d9e75"
+    }
+  },
+  "typography": {
+    "font-display":    "'Syne', sans-serif",
+    "font-mono":       "'IBM Plex Mono', ui-monospace, monospace",
+    "font-size-base":  "13px",
+    "font-size-sm":    "0.65rem",
+    "font-size-xs":    "0.58rem",
+    "font-size-label": "0.55rem"
+  },
+  "spacing": {
+    "xs": "0.25rem",
+    "sm": "0.5rem",
+    "md": "1rem",
+    "lg": "1.5rem",
+    "xl": "2.5rem"
+  },
+  "radius": {
+    "sm":   "4px",
+    "md":   "8px",
+    "lg":   "12px",
+    "pill": "999px"
+  },
+  "shadow": {
+    "sm": "0 1px 4px rgba(0, 0, 0, 0.08)",
+    "md": "0 4px 16px rgba(0, 0, 0, 0.10)",
+    "lg": "0 8px 32px rgba(0, 0, 0, 0.12)"
+  },
+  "motion": {
+    "transition-fast": "120ms ease",
+    "transition-base": "200ms ease",
+    "transition-slow": "320ms ease"
+  }
+}
