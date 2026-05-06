@@ -1,0 +1,1326 @@
+<!DOCTYPE html>
+<html lang="en" data-mode="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UXC Activation Surface · v1.2 · stardance-uxc-canon</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#050f14;--surface:#081520;--elevated:#0d1e2d;
+  --border:rgba(48,171,202,0.12);--border-hi:rgba(48,171,202,0.28);
+  --text:#c8e8f4;--text2:#6aafc8;--text3:#3d7a94;
+  --primary:#30ABCA;--primary-dim:rgba(48,171,202,0.09);
+  --pass:#059669;--pass-dim:rgba(5,150,105,0.12);
+  --caution:#D97706;--caution-dim:rgba(217,119,6,0.12);
+  --fail:#DC2626;--fail-dim:rgba(220,38,38,0.12);
+  --info:#2563EB;--info-dim:rgba(37,99,235,0.12);
+  --pending-dim:rgba(61,122,148,0.10);
+  --fd:"DM Sans",sans-serif;--fm:"IBM Plex Mono",monospace;
+  --r:3px;--t:0.18s ease;
+}
+[data-mode="light"]{
+  --bg:#f0f9ff;--surface:#fff;--elevated:#e0f2fe;
+  --border:rgba(8,145,178,0.14);--border-hi:rgba(8,145,178,0.32);
+  --text:#0c1a24;--text2:#1e6e8c;--text3:#3d8aaa;
+  --primary:#0891B2;--primary-dim:rgba(8,145,178,0.10);
+  --pass:#059669;--caution:#D97706;--fail:#DC2626;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:var(--fm);font-size:12px;line-height:1.6;min-height:100vh;transition:background .3s,color .3s;overflow-x:hidden;}
+
+/* grid bg */
+body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(48,171,202,0.016) 1px,transparent 1px),linear-gradient(90deg,rgba(48,171,202,0.016) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0;}
+[data-mode="light"] body::before{background-image:linear-gradient(rgba(8,145,178,0.04) 1px,transparent 1px),linear-gradient(90deg,rgba(8,145,178,0.04) 1px,transparent 1px);}
+
+/* HEADER */
+.hdr{position:sticky;top:0;z-index:200;display:flex;align-items:center;justify-content:space-between;padding:0 24px;height:48px;background:rgba(5,15,20,0.97);border-bottom:1px solid var(--border);backdrop-filter:blur(16px);}
+[data-mode="light"] .hdr{background:rgba(240,249,255,0.97);}
+.hdr-left{display:flex;align-items:center;gap:10px;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--text2);}
+.hdr-left .mk{color:var(--primary);font-weight:600;font-family:var(--fd);}
+.hdr-left .sep{color:var(--text3);opacity:.6;}
+.hdr-left .bc{font-size:10px;cursor:pointer;color:var(--text3);transition:color var(--t);display:flex;align-items:center;gap:5px;}
+.hdr-left .bc:hover{color:var(--primary);}
+.hdr-left .bc::before{content:"←";font-size:12px;}
+.hdr-right{display:flex;align-items:center;gap:12px;}
+.hdr-meta{display:flex;align-items:center;gap:10px;font-size:10px;color:var(--text3);}
+.rdot{display:flex;align-items:center;gap:5px;}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--pass);box-shadow:0 0 6px var(--pass);animation:dp 3s ease-in-out infinite;}
+@keyframes dp{0%,100%{opacity:1;}50%{opacity:.4;}}
+.vtag{padding:2px 8px;border:1px solid var(--border);border-radius:var(--r);color:var(--primary);font-size:10px;}
+.hdr-mode-btn{display:flex;align-items:center;gap:6px;padding:5px 10px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);cursor:pointer;font-family:var(--fm);font-size:10px;color:var(--text2);transition:all var(--t);letter-spacing:.04em;}
+.hdr-mode-btn:hover{border-color:var(--border-hi);}
+
+/* MAIN SHELL */
+.shell{position:relative;z-index:1;min-height:calc(100vh - 48px);}
+
+/* VIEWS */
+.view{display:none;animation:fadeUp .35s ease both;}
+.view.active{display:block;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px);}to{opacity:1;transform:translateY(0);}}
+
+/* ═══════════════════════════════════
+   HUB VIEW
+═══════════════════════════════════ */
+.hub{max-width:900px;margin:0 auto;padding:60px 24px 80px;}
+
+.hub-eyebrow{font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--text3);text-align:center;margin-bottom:14px;}
+.hub-headline{font-family:var(--fd);font-size:32px;font-weight:300;color:var(--text);text-align:center;margin-bottom:8px;letter-spacing:-.01em;}
+.hub-headline strong{font-weight:600;color:var(--primary);}
+.hub-sub{font-size:11px;color:var(--text3);text-align:center;margin-bottom:52px;letter-spacing:.04em;}
+
+/* Primary cards */
+.hub-cards{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:32px;}
+.hcard{background:var(--surface);border:1px solid var(--border);border-radius:5px;padding:32px 28px;cursor:pointer;transition:border-color .25s,background .25s,transform .2s;position:relative;overflow:hidden;display:flex;flex-direction:column;}
+.hcard::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,var(--primary-dim) 0%,transparent 60%);opacity:0;transition:opacity .3s;}
+.hcard:hover{border-color:var(--border-hi);transform:translateY(-2px);}
+.hcard:hover::before{opacity:1;}
+.hcard-icon{width:44px;height:44px;margin-bottom:20px;color:var(--primary);opacity:.8;}
+.hcard-title{font-family:var(--fd);font-size:20px;font-weight:600;color:var(--text);margin-bottom:8px;letter-spacing:-.01em;}
+.hcard-desc{font-size:11px;color:var(--text2);line-height:1.7;margin-bottom:20px;}
+.hcard-meta{display:flex;flex-direction:column;gap:5px;margin-bottom:24px;padding:12px 0;border-top:1px solid var(--border);border-bottom:1px solid var(--border);flex:1;}
+.hcard-row{display:flex;justify-content:space-between;font-size:10px;}
+.hcard-row .lbl{color:var(--text3);letter-spacing:.06em;text-transform:uppercase;}
+.hcard-row .val{color:var(--text2);}
+.hcard-cta{width:100%;padding:10px;background:var(--primary-dim);border:1px solid var(--border-hi);border-radius:var(--r);color:var(--primary);font-family:var(--fm);font-size:11px;letter-spacing:.10em;text-transform:uppercase;cursor:pointer;transition:all var(--t);font-weight:500;}
+.hcard:hover .hcard-cta{background:var(--primary);color:#fff;border-color:var(--primary);}
+
+/* Activity strip */
+.activity{margin-bottom:40px;}
+.act-label{font-size:9px;letter-spacing:.20em;text-transform:uppercase;color:var(--text3);margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+.act-label::after{content:'';flex:1;height:1px;background:var(--border);}
+.act-list{display:flex;flex-direction:column;gap:4px;}
+.act-item{display:flex;align-items:center;gap:12px;padding:8px 12px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);cursor:pointer;transition:all var(--t);}
+.act-item:hover{border-color:var(--border-hi);background:var(--elevated);}
+.act-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.act-state{font-size:10px;color:var(--text3);width:100px;flex-shrink:0;letter-spacing:.02em;}
+.act-id{font-size:10px;color:var(--text3);width:100px;flex-shrink:0;}
+.act-name{font-size:11px;color:var(--text2);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.act-mode{font-size:9px;padding:2px 6px;border:1px solid var(--border);border-radius:2px;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;flex-shrink:0;}
+.act-empty{font-size:10px;color:var(--text3);text-align:center;padding:12px;font-style:italic;}
+
+/* Coming soon */
+.coming-section{margin-top:8px;}
+.coming-phase-label{font-size:9px;letter-spacing:.20em;text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:8px;}
+.coming-phase-label::after{content:'';flex:1;height:1px;background:var(--border);}
+.phase2-lbl{color:rgba(217,119,6,.6);}
+.phase3-lbl{color:rgba(61,122,148,.5);}
+.coming-row{display:flex;gap:10px;margin-bottom:14px;}
+.ccard{flex:1;background:rgba(8,21,32,0.4);border:1px solid rgba(48,171,202,0.06);border-radius:var(--r);padding:12px 14px;position:relative;opacity:.55;cursor:default;transition:opacity .2s;}
+[data-mode="light"] .ccard{background:rgba(240,249,255,0.6);}
+.ccard:hover{opacity:.75;}
+.ccard .ph-badge{display:inline-block;font-size:8px;letter-spacing:.12em;text-transform:uppercase;padding:2px 6px;background:rgba(217,119,6,.12);border:1px solid rgba(217,119,6,.25);border-radius:2px;color:rgba(217,119,6,.8);margin-bottom:6px;}
+.phase3-row .ccard .ph-badge{background:rgba(61,122,148,.08);border-color:rgba(61,122,148,.2);color:rgba(61,122,148,.7);}
+.ccard-title{font-size:11px;font-weight:500;color:var(--text3);font-family:var(--fd);}
+.ccard-line{font-size:9px;color:var(--text3);opacity:.7;margin-top:3px;line-height:1.4;display:none;}
+.ccard:hover .ccard-line{display:block;}
+.phase3-row{justify-content:center;}
+.phase3-row .ccard{max-width:200px;}
+
+/* Tooltip — coming soon panels */
+.tip-wrap{position:relative;}
+.tip-wrap .tip-box{
+  position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%) translateY(4px);
+  background:#0d1e2d;border:1px solid var(--border-hi);
+  padding:10px 12px;border-radius:var(--r);width:220px;
+  font-size:10px;line-height:1.6;color:var(--text2);
+  pointer-events:none;opacity:0;transition:opacity .15s,transform .15s;
+  z-index:100;box-shadow:0 8px 24px rgba(0,0,0,0.5);
+}
+[data-mode="light"] .tip-wrap .tip-box{background:#fff;box-shadow:0 4px 16px rgba(0,0,0,.12);}
+.tip-wrap:hover .tip-box{opacity:1;transform:translateX(-50%) translateY(0);}
+.tip-box .tw{color:var(--text);font-weight:500;display:block;margin-bottom:3px;font-size:11px;}
+.tip-box .tp{color:var(--caution);font-size:9px;letter-spacing:.08em;text-transform:uppercase;margin-top:5px;display:block;}
+
+/* ═══════════════════════════════════
+   SURFACE MODE — left+right shell
+═══════════════════════════════════ */
+.mode-shell{display:grid;grid-template-columns:320px 1fr;min-height:calc(100vh - 48px);}
+.mode-left{border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;max-height:calc(100vh - 48px);position:sticky;top:48px;}
+.mode-right{display:flex;flex-direction:column;overflow-y:auto;max-height:calc(100vh - 48px);}
+
+/* shared panel section */
+.ps{padding:16px 16px 12px;border-bottom:1px solid var(--border);}
+.ps:last-child{border-bottom:none;}
+.slbl{font-size:9px;letter-spacing:.20em;text-transform:uppercase;color:var(--text3);margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+.slbl::after{content:'';flex:1;height:1px;background:var(--border);}
+.fld{margin-bottom:9px;}
+.flbl{display:flex;align-items:center;font-size:10px;letter-spacing:.08em;color:var(--text3);text-transform:uppercase;margin-bottom:4px;}
+.finp,.fsel{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-family:var(--fm);font-size:12px;padding:7px 10px;outline:none;transition:border-color var(--t),background var(--t);-webkit-appearance:none;}
+.finp:focus,.fsel:focus{border-color:var(--primary);background:var(--elevated);}
+.fsel option{background:#0d1e2d;}
+[data-mode="light"] .fsel option{background:#fff;}
+.finp::placeholder{color:var(--text3);}
+.trow{display:flex;align-items:center;justify-content:space-between;padding:5px 0;}
+.tlbl{font-size:11px;color:var(--text2);}
+.tgl{position:relative;width:36px;height:20px;cursor:pointer;flex-shrink:0;}
+.tgl input{display:none;}
+.ttrk{position:absolute;inset:0;background:var(--elevated);border:1px solid var(--border);border-radius:10px;transition:background var(--t),border-color var(--t);}
+.tgl input:checked+.ttrk{background:var(--primary-dim);border-color:var(--primary);}
+.tthm{position:absolute;top:3px;left:3px;width:12px;height:12px;background:var(--text3);border-radius:50%;transition:transform var(--t),background var(--t);}
+.tgl input:checked~.tthm{transform:translateX(16px);background:var(--primary);}
+
+/* Creative mandate */
+.mgrid{display:grid;grid-template-columns:1fr 1fr;gap:5px;}
+.mi{display:flex;flex-direction:column;gap:3px;padding:8px 10px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);cursor:pointer;transition:border-color var(--t),background var(--t);user-select:none;}
+.mi:hover{border-color:var(--border-hi);}
+.mi.chk{border-color:var(--pass);background:var(--pass-dim);}
+.mi-top{display:flex;align-items:center;gap:6px;}
+.mbox{width:12px;height:12px;border:1px solid var(--border-hi);border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:9px;flex-shrink:0;}
+.mi.chk .mbox{background:var(--pass);border-color:var(--pass);color:#fff;}
+.mtxt{font-size:11px;color:var(--text2);font-weight:500;}
+.mi.chk .mtxt{color:var(--pass);}
+.mi-desc{font-size:9px;color:var(--text3);line-height:1.4;display:none;margin-top:2px;}
+.mi:hover .mi-desc{display:block;}
+.mcnt{font-size:10px;color:var(--text3);margin-top:7px;text-align:right;}
+.mcnt.ok{color:var(--pass);}  .mcnt.warn{color:var(--caution);}
+
+/* Lifecycle pipeline */
+.pipe{padding:12px 16px 16px;}
+.pipe-trk{position:relative;padding-left:22px;}
+.pipe-trk::before{content:'';position:absolute;left:6px;top:10px;bottom:10px;width:1px;background:var(--border);}
+.pipe-s{position:relative;padding:3px 0 3px 14px;}
+.pipe-s::before{content:'';position:absolute;left:-17px;top:50%;transform:translateY(-50%);width:8px;height:8px;border-radius:50%;border:1px solid var(--border);background:var(--bg);transition:all var(--t);z-index:1;}
+.pipe-s.active::before{background:var(--primary);border-color:var(--primary);box-shadow:0 0 10px rgba(48,171,202,0.6);}
+.pipe-s.done::before{background:var(--pass);border-color:var(--pass);}
+.pipe-sn{font-size:10px;color:var(--text3);font-family:var(--fm);}
+.pipe-s.active .pipe-sn{color:var(--primary);font-weight:500;font-size:11px;}
+.pipe-s.done .pipe-sn{color:var(--pass);}
+.pipe-inst{font-size:9px;color:var(--text3);line-height:1.4;padding:3px 0 2px 2px;display:none;}
+.pipe-s.active .pipe-inst{display:block;}
+.adv-btn{margin-top:12px;width:100%;padding:8px;background:var(--primary-dim);border:1px solid var(--border-hi);border-radius:var(--r);color:var(--primary);font-family:var(--fm);font-size:11px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;transition:all var(--t);}
+.adv-btn:hover{background:rgba(48,171,202,0.18);border-color:var(--primary);}
+.adv-btn:disabled{opacity:.3;cursor:not-allowed;}
+
+/* Tabs / right panel */
+.tabs{display:flex;border-bottom:1px solid var(--border);background:var(--bg);position:sticky;top:0;z-index:10;transition:background .3s;}
+.tbtn{padding:13px 18px;font-family:var(--fm);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;transition:all var(--t);}
+.tbtn:hover{color:var(--text2);}
+.tbtn.active{color:var(--primary);border-bottom-color:var(--primary);}
+.tpane{display:none;padding:20px;}
+.tpane.active{display:block;}
+.ph{font-family:var(--fd);font-size:14px;font-weight:600;color:var(--text);margin-bottom:3px;}
+.ps2{font-size:10px;color:var(--text3);margin-bottom:16px;line-height:1.6;}
+
+/* Inline tooltip */
+.itip{position:relative;display:inline-flex;align-items:center;}
+.itip .itt{position:absolute;bottom:calc(100% + 7px);left:0;background:#0d1e2d;border:1px solid var(--border-hi);color:var(--text);font-size:10px;line-height:1.5;padding:7px 10px;border-radius:var(--r);white-space:normal;z-index:500;pointer-events:none;opacity:0;transform:translateY(4px);transition:opacity .15s,transform .15s;font-family:var(--fm);width:240px;box-shadow:0 8px 24px rgba(0,0,0,.4);}
+[data-mode="light"] .itip .itt{background:#fff;box-shadow:0 4px 16px rgba(0,0,0,.12);}
+.itip:hover .itt{opacity:1;transform:translateY(0);}
+.iico{display:inline-block;width:13px;height:13px;border-radius:50%;background:var(--primary-dim);border:1px solid var(--border-hi);color:var(--primary);font-size:8px;text-align:center;line-height:11px;margin-left:4px;cursor:help;flex-shrink:0;}
+
+/* Contract grid */
+.cgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.ccard-v{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:12px;transition:border-color var(--t);}
+.ccard-v.pass{border-color:rgba(5,150,105,0.3);} .ccard-v.fail{border-color:rgba(220,38,38,0.3);}
+.ccard-v.warn{border-color:rgba(217,119,6,0.3);} .ccard-v.na{opacity:.4;}
+.chdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}
+.cid{font-size:10px;letter-spacing:.10em;color:var(--text3);}
+.spill{font-size:9px;letter-spacing:.08em;text-transform:uppercase;padding:2px 7px;border-radius:2px;font-weight:500;}
+.spill.pass{background:var(--pass-dim);color:var(--pass);} .spill.fail{background:var(--fail-dim);color:var(--fail);}
+.spill.warn{background:var(--caution-dim);color:var(--caution);} .spill.pending{background:var(--pending-dim);color:var(--text3);}
+.spill.na{background:var(--pending-dim);color:var(--text3);}
+.cnm{font-size:12px;color:var(--text);margin-bottom:3px;font-family:var(--fd);font-weight:500;}
+.cnote{font-size:10px;color:var(--text3);line-height:1.5;}
+.cexp{font-size:9px;color:var(--text3);margin-top:6px;padding-top:6px;border-top:1px solid var(--border);line-height:1.5;display:none;}
+.ccard-v:hover .cexp{display:block;}
+
+/* Flow steps */
+.flow-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;margin-bottom:16px;}
+.flow-step{display:flex;align-items:flex-start;gap:10px;padding:6px 0;border-bottom:1px solid var(--border);}
+.flow-step:last-child{border-bottom:none;}
+.flow-num{width:18px;height:18px;border-radius:50%;background:var(--primary-dim);border:1px solid var(--border-hi);color:var(--primary);font-size:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+.flow-txt{font-size:11px;color:var(--text2);line-height:1.5;}
+.flow-txt strong{color:var(--text);display:block;margin-bottom:2px;}
+.act-hint{display:flex;align-items:center;gap:8px;padding:10px 14px;background:var(--primary-dim);border:1px solid var(--border-hi);border-radius:var(--r);margin-top:16px;}
+.ah-txt{font-size:11px;color:var(--text2);}
+.ah-btn{margin-left:auto;padding:5px 12px;background:var(--primary);color:#fff;border:none;border-radius:var(--r);font-family:var(--fm);font-size:10px;letter-spacing:.08em;text-transform:uppercase;cursor:pointer;}
+
+/* Brief output */
+.bout{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px;font-family:var(--fm);font-size:11px;line-height:1.9;color:var(--text2);white-space:pre;min-height:200px;}
+.bout .k{color:var(--text3);} .bout .v{color:var(--primary);} .bout .vw{color:var(--caution);}
+.next-steps{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;margin-top:14px;}
+.ns-title{font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--text3);margin-bottom:10px;}
+.ns-step{display:flex;align-items:flex-start;gap:10px;padding:6px 0;border-bottom:1px solid var(--border);}
+.ns-step:last-child{border-bottom:none;}
+.ns-num{width:18px;height:18px;border-radius:50%;background:var(--primary-dim);border:1px solid var(--border-hi);color:var(--primary);font-size:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+.ns-txt{font-size:11px;color:var(--text2);line-height:1.5;}
+.ns-txt code{color:var(--primary);background:var(--primary-dim);padding:1px 5px;border-radius:2px;}
+.cp-btn{margin-top:10px;padding:9px 18px;background:var(--primary-dim);border:1px solid var(--primary);border-radius:var(--r);color:var(--primary);font-family:var(--fm);font-size:11px;letter-spacing:.10em;text-transform:uppercase;cursor:pointer;transition:all var(--t);display:flex;align-items:center;gap:8px;}
+.cp-btn:hover{background:rgba(48,171,202,0.2);}
+.cp-btn.copied{color:var(--pass);border-color:var(--pass);background:var(--pass-dim);}
+
+/* UAT */
+.usec{margin-bottom:22px;}
+.utitle{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border);}
+.ucl{display:flex;flex-direction:column;gap:5px;}
+.ui{display:flex;align-items:flex-start;gap:9px;padding:8px 11px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);cursor:pointer;transition:all var(--t);user-select:none;}
+.ui:hover{border-color:var(--border-hi);}
+.ui.chk{border-color:rgba(5,150,105,0.35);background:var(--pass-dim);}
+.ui input{display:none;}
+.ubox{width:14px;height:14px;border:1px solid var(--border-hi);border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:9px;flex-shrink:0;margin-top:1px;}
+.ui.chk .ubox{background:var(--pass);border-color:var(--pass);color:#fff;}
+.utxt{font-size:11px;color:var(--text2);line-height:1.4;}
+.ui.chk .utxt{color:var(--pass);}
+.uscr{font-size:11px;color:var(--text3);text-align:right;margin-top:8px;}
+.uscr .ok{color:var(--pass);font-weight:500;}
+
+/* DRJ lock */
+.lcard{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:12px;}
+.lstat{display:flex;align-items:center;gap:9px;margin-bottom:12px;}
+.li{width:10px;height:10px;border-radius:50%;background:var(--text3);flex-shrink:0;}
+.li.locked{background:var(--pass);box-shadow:0 0 8px rgba(5,150,105,0.5);}
+.llbl{font-size:12px;color:var(--text2);}
+.lbtn{width:100%;padding:10px;background:rgba(5,150,105,0.10);border:1px solid rgba(5,150,105,0.35);border-radius:var(--r);color:var(--pass);font-family:var(--fm);font-size:11px;letter-spacing:.10em;text-transform:uppercase;cursor:pointer;transition:all var(--t);}
+.lbtn:hover{background:var(--pass-dim);}
+.abtn{width:100%;padding:10px;background:var(--elevated);border:1px solid var(--border);border-radius:var(--r);color:var(--text2);font-family:var(--fm);font-size:11px;letter-spacing:.10em;text-transform:uppercase;cursor:pointer;transition:all var(--t);margin-top:9px;}
+.abtn:hover{border-color:var(--border-hi);color:var(--text);}
+.irow{display:flex;justify-content:space-between;font-size:10px;color:var(--text3);padding:5px 0;border-bottom:1px solid var(--border);}
+.irow:last-child{border-bottom:none;}
+.irow .val{color:var(--text2);}
+.cnotice{padding:10px 13px;background:var(--info-dim);border:1px solid rgba(37,99,235,0.2);border-radius:var(--r);font-size:10px;color:#93b4e8;line-height:1.6;margin-bottom:14px;}
+.cnotice strong{color:var(--info);display:block;margin-bottom:3px;font-size:10px;letter-spacing:.08em;text-transform:uppercase;}
+.deploy-steps{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-top:14px;}
+.ds-title{font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--text3);margin-bottom:10px;}
+.ds-step{display:flex;align-items:flex-start;gap:9px;padding:5px 0;border-bottom:1px solid var(--border);}
+.ds-step:last-child{border-bottom:none;}
+.ds-n{width:16px;height:16px;border-radius:50%;background:var(--primary-dim);border:1px solid var(--border-hi);color:var(--primary);font-size:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+.ds-txt{font-size:10px;color:var(--text2);line-height:1.5;}
+.ds-txt code{color:var(--primary);background:var(--primary-dim);padding:1px 4px;border-radius:2px;}
+
+/* SYSTEM MODE */
+.system-shell{max-width:900px;margin:0 auto;padding:40px 24px 80px;}
+.sys-coming{text-align:center;padding:60px 40px;background:var(--surface);border:1px solid var(--border);border-radius:5px;margin-top:24px;}
+.sys-coming-icon{font-size:32px;margin-bottom:16px;opacity:.4;}
+.sys-coming-title{font-family:var(--fd);font-size:18px;font-weight:500;color:var(--text2);margin-bottom:8px;}
+.sys-coming-desc{font-size:11px;color:var(--text3);line-height:1.7;max-width:400px;margin:0 auto;}
+
+/* ═══════════════════════════════════
+   SYSTEM MODE STYLES
+═══════════════════════════════════ */
+.sys-layout{display:grid;grid-template-columns:1fr;min-height:calc(100vh - 48px);}
+.sys-tabs{display:flex;border-bottom:1px solid var(--border);background:var(--bg);position:sticky;top:0;z-index:10;}
+.sys-tab{padding:13px 18px;font-family:var(--fm);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--text3);background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;transition:all var(--t);}
+.sys-tab:hover{color:var(--text2);}
+.sys-tab.active{color:var(--primary);border-bottom-color:var(--primary);}
+.sys-pane{display:none;padding:24px;max-width:900px;margin:0 auto;width:100%;}
+.sys-pane.active{display:block;}
+
+/* Step 0 badge */
+.step0-badge{display:inline-flex;align-items:center;gap:8px;padding:3px 10px;background:rgba(217,119,6,.12);border:1px solid rgba(217,119,6,.25);border-radius:2px;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--caution);margin-bottom:12px;}
+
+/* Brief display */
+.brief-pre{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:18px 20px;font-family:var(--fm);font-size:10px;line-height:1.9;color:var(--text2);white-space:pre-wrap;word-break:break-word;margin-bottom:12px;max-height:420px;overflow-y:auto;}
+.brief-pre .bk{color:var(--text3);}
+.brief-pre .bv{color:var(--primary);}
+.brief-pre .bh{color:var(--text);font-weight:500;}
+
+/* Spec intake */
+.spec-area{width:100%;min-height:200px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px;font-family:var(--fm);font-size:11px;color:var(--text);resize:vertical;outline:none;transition:border-color var(--t);line-height:1.6;}
+.spec-area:focus{border-color:var(--primary);}
+.spec-area::placeholder{color:var(--text3);}
+.parse-btn{margin-top:10px;width:100%;padding:11px;background:var(--primary-dim);border:1px solid var(--primary);border-radius:var(--r);color:var(--primary);font-family:var(--fm);font-size:11px;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;transition:all var(--t);display:flex;align-items:center;justify-content:center;gap:10px;}
+.parse-btn:hover{background:rgba(48,171,202,0.20);}
+.parse-btn:disabled{opacity:.4;cursor:not-allowed;}
+.parse-btn .spinner{width:14px;height:14px;border:2px solid rgba(48,171,202,.3);border-top-color:var(--primary);border-radius:50%;animation:spin .8s linear infinite;display:none;}
+.parse-btn.loading .spinner{display:block;}
+.parse-btn.loading .parse-lbl{opacity:.6;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.parse-status{margin-top:8px;font-size:10px;padding:7px 10px;border-radius:var(--r);}
+.parse-status.ok{background:var(--pass-dim);color:var(--pass);border:1px solid rgba(5,150,105,.2);}
+.parse-status.err{background:var(--fail-dim);color:var(--fail);border:1px solid rgba(220,38,38,.2);}
+.parse-status.info{background:var(--info-dim);color:#93b4e8;border:1px solid rgba(37,99,235,.2);}
+
+/* Surface family */
+.sfam-grid{display:flex;flex-direction:column;gap:8px;margin-top:4px;}
+.sfam-empty{text-align:center;padding:40px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);color:var(--text3);font-size:11px;}
+.sfam-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;display:grid;grid-template-columns:32px 1fr auto;gap:12px;align-items:start;}
+.sfam-num{width:28px;height:28px;border-radius:50%;background:var(--primary-dim);border:1px solid var(--border-hi);color:var(--primary);font-size:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:var(--fm);}
+.sfam-body{}
+.sfam-id{font-size:9px;letter-spacing:.12em;color:var(--text3);text-transform:uppercase;margin-bottom:2px;}
+.sfam-name{font-size:13px;font-weight:600;color:var(--text);font-family:var(--fd);margin-bottom:4px;}
+.sfam-purpose{font-size:10px;color:var(--text2);line-height:1.5;margin-bottom:8px;}
+.sfam-tags{display:flex;flex-wrap:wrap;gap:5px;}
+.sfam-tag{font-size:9px;padding:2px 7px;border-radius:2px;letter-spacing:.06em;}
+.sfam-tag.cbc{background:var(--primary-dim);color:var(--primary);border:1px solid var(--border-hi);}
+.sfam-tag.mode{background:var(--pending-dim);color:var(--text2);}
+.sfam-tag.t3a{background:rgba(217,119,6,.12);color:var(--caution);border:1px solid rgba(217,119,6,.2);}
+.sfam-state{display:flex;flex-direction:column;align-items:flex-end;gap:4px;}
+.sfam-state .spill{font-size:9px;letter-spacing:.08em;text-transform:uppercase;padding:2px 7px;border-radius:2px;font-weight:500;}
+
+/* System meta grid */
+.sys-meta-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:20px;}
+.sys-meta-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px;}
+.sys-meta-lbl{font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--text3);margin-bottom:4px;}
+.sys-meta-val{font-size:13px;color:var(--text);font-family:var(--fd);font-weight:500;}
+.sys-meta-val.empty{color:var(--text3);font-weight:300;font-size:11px;font-style:italic;}
+
+/* Operator modes */
+.op-modes{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;}
+.op-mode-chip{padding:6px 14px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);font-size:10px;color:var(--text2);}
+.op-mode-chip strong{color:var(--text);display:block;font-family:var(--fd);}
+.op-mode-chip span{font-size:9px;color:var(--text3);}
+
+/* System brief output */
+.sys-brief-out{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px;font-family:var(--fm);font-size:10px;line-height:1.9;color:var(--text2);white-space:pre;min-height:200px;max-height:500px;overflow-y:auto;}
+.sys-brief-out .k{color:var(--text3);}
+.sys-brief-out .v{color:var(--primary);}
+.sys-brief-out .h{color:var(--text);font-weight:500;}
+.sys-brief-out .vw{color:var(--caution);}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="hdr">
+  <div class="hdr-left" id="hdrLeft">
+    <span class="mk">STARDANCE</span>
+    <span class="sep">/</span>
+    <span style="color:var(--text2)">UXC ACTIVATION SURFACE</span>
+    <span class="sep">·</span>
+    <span style="color:var(--text3)">GOVERNED BUILD PIPELINE</span>
+  </div>
+  <div class="hdr-right">
+    <div class="hdr-meta">
+      <span class="rdot"><span class="dot"></span><span>5/5 live</span></span>
+      <span style="color:var(--border-hi)">|</span>
+      <span class="vtag">v1.2</span>
+    </div>
+    <button class="hdr-mode-btn" id="modeBtn" onclick="toggleMode()">☾ Dark</button>
+  </div>
+</header>
+
+<div class="shell">
+
+  <!-- ══ HUB VIEW ══ -->
+  <div class="view active" id="view-hub">
+    <div class="hub">
+
+      <div class="hub-eyebrow">UXC Activation Surface · Governed Build Pipeline</div>
+      <h1 class="hub-headline">What are you <strong>building</strong> today?</h1>
+      <p class="hub-sub">Select a creation mode to begin · Each path is governed by stardance-uxc-canon</p>
+
+      <!-- Primary Cards -->
+      <div class="hub-cards">
+
+        <div class="hcard" onclick="goMode('surface')">
+          <svg class="hcard-icon" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="4" y="4" width="36" height="36" rx="3" stroke="currentColor" stroke-width="1.5"/>
+            <rect x="10" y="14" width="24" height="3" rx="1" fill="currentColor" opacity=".7"/>
+            <rect x="10" y="21" width="18" height="2" rx="1" fill="currentColor" opacity=".4"/>
+            <rect x="10" y="27" width="14" height="2" rx="1" fill="currentColor" opacity=".4"/>
+            <rect x="10" y="33" width="10" height="2" rx="1" fill="currentColor" opacity=".25"/>
+          </svg>
+          <div class="hcard-title">Surface</div>
+          <div class="hcard-desc">A single deployable web surface — landing page, hero, operator view, or conversion surface. Governed by one component type (CBC · Component Behaviour Contract) and one visual identity system (UIS · UI Standard).</div>
+          <div class="hcard-meta">
+            <div class="hcard-row"><span class="lbl">Input</span><span class="val">Manual brief intake</span></div>
+            <div class="hcard-row"><span class="lbl">Output</span><span class="val">HTML · React · Claude-built</span></div>
+            <div class="hcard-row"><span class="lbl">Time</span><span class="val">30 – 90 min</span></div>
+          </div>
+          <button class="hcard-cta">Start Surface Build →</button>
+        </div>
+
+        <div class="hcard" onclick="goMode('system')">
+          <svg class="hcard-icon" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect x="4" y="4" width="16" height="16" rx="2" stroke="currentColor" stroke-width="1.5" opacity=".9"/>
+            <rect x="24" y="4" width="16" height="16" rx="2" stroke="currentColor" stroke-width="1.5" opacity=".7"/>
+            <rect x="4" y="24" width="16" height="16" rx="2" stroke="currentColor" stroke-width="1.5" opacity=".7"/>
+            <rect x="24" y="24" width="16" height="16" rx="2" stroke="currentColor" stroke-width="1.5" opacity=".5"/>
+            <line x1="20" y1="12" x2="24" y2="12" stroke="currentColor" stroke-width="1" opacity=".4"/>
+            <line x1="12" y1="20" x2="12" y2="24" stroke="currentColor" stroke-width="1" opacity=".4"/>
+            <line x1="32" y1="20" x2="32" y2="24" stroke="currentColor" stroke-width="1" opacity=".4"/>
+          </svg>
+          <div class="hcard-title">System</div>
+          <div class="hcard-desc">A multi-surface product family — an intelligence cockpit, platform shell, or operator system. Multiple zones, each with its own component type (CBC · Component Behaviour Contract) and operator access level.</div>
+          <div class="hcard-meta">
+            <div class="hcard-row"><span class="lbl">Input</span><span class="val">Specification JSON</span></div>
+            <div class="hcard-row"><span class="lbl">Output</span><span class="val">Surface family · Claude-built</span></div>
+            <div class="hcard-row"><span class="lbl">Time</span><span class="val">2 – 4 hrs</span></div>
+          </div>
+          <button class="hcard-cta">Start System Build →</button>
+        </div>
+
+      </div>
+
+      <!-- Activity Strip -->
+      <div class="activity">
+        <div class="act-label">Recent Activity</div>
+        <div class="act-list" id="actList">
+          <div class="act-empty">No recent activity — start a build above</div>
+        </div>
+      </div>
+
+      <!-- Coming Soon -->
+      <div class="coming-section">
+        <div class="coming-phase-label phase2-lbl">Phase 2 · Coming Soon</div>
+        <div class="coming-row">
+          <div class="tip-wrap">
+            <div class="ccard">
+              <div class="ph-badge">Phase 2</div>
+              <div class="ccard-title">Component</div>
+            </div>
+            <div class="tip-box"><span class="tw">Single CBC Component</span>Build one canonical component in isolation — a trust bar, offer stack, or diagnostic entry — ready to drop into any surface.<span class="tp">Phase 2</span></div>
+          </div>
+          <div class="tip-wrap">
+            <div class="ccard">
+              <div class="ph-badge">Phase 2</div>
+              <div class="ccard-title">Audit</div>
+            </div>
+            <div class="tip-box"><span class="tw">UXC Surface Audit</span>Run any existing surface through all 8 UXC contract layers. Brings legacy surfaces into the governed pipeline without a full rebuild.<span class="tp">Phase 2</span></div>
+          </div>
+          <div class="tip-wrap">
+            <div class="ccard">
+              <div class="ph-badge">Phase 2</div>
+              <div class="ccard-title">Token Pack</div>
+            </div>
+            <div class="tip-box"><span class="tw">Product Theme Generator</span>Generate a complete sd-tokens.css extension for a new product or white-label deployment. All 9 theme×mode combinations included.<span class="tp">Phase 2</span></div>
+          </div>
+          <div class="tip-wrap">
+            <div class="ccard">
+              <div class="ph-badge">Phase 2</div>
+              <div class="ccard-title">Brief Template</div>
+            </div>
+            <div class="tip-box"><span class="tw">Reusable Brief Template</span>Save a governed brief template for a repeating surface type — e.g. Stardance Hero refresh. Eliminates redundant intake for recurring builds.<span class="tp">Phase 2</span></div>
+          </div>
+        </div>
+
+        <div class="coming-phase-label phase3-lbl" style="margin-top:4px">Phase 3 · Planned</div>
+        <div class="coming-row phase3-row">
+          <div class="tip-wrap">
+            <div class="ccard">
+              <div class="ph-badge">Phase 3</div>
+              <div class="ccard-title">Migration</div>
+            </div>
+            <div class="tip-box"><span class="tw">Surface Migration</span>Rewrite a non-UXC surface to full canon compliance. Updates tokens, CBC vocabulary, mode declarations, and creative mandate in one governed pass.<span class="tp">Phase 3</span></div>
+          </div>
+          <div class="tip-wrap">
+            <div class="ccard">
+              <div class="ph-badge">Phase 3</div>
+              <div class="ccard-title">Agent Brief</div>
+            </div>
+            <div class="tip-box"><span class="tw">Multi-Agent Workflow Brief</span>Generate a governed brief for surfaces involving multiple AI agents — SCOUT ingestion, MO-BASE scoring, DOCENTE delivery — as a coordinated pipeline.<span class="tp">Phase 3</span></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══ SURFACE MODE ══ -->
+  <div class="view" id="view-surface">
+    <div class="mode-shell">
+      <aside class="mode-left">
+        <div class="ps">
+          <div class="slbl">Surface Record</div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);">
+            <span style="font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:.12em;">ID</span>
+            <span style="font-size:11px;color:var(--primary);letter-spacing:.06em;" id="surfaceId">—</span>
+          </div>
+        </div>
+        <div class="ps">
+          <div class="slbl">Brief Intake</div>
+          <div class="fld"><label class="flbl">Surface Name</label><input class="finp" id="fName" type="text" placeholder="e.g. Stardance Hero v2" oninput="onChange()"></div>
+          <div class="fld">
+            <label class="flbl">Surface Type <span class="itip"><span class="iico">?</span><span class="itt">Operator: Internal SD team tools.<br>Creator: Customer-facing surfaces.<br>Conversion: Landing pages, pricing.<br>Intelligence: Signal dashboards, SCOUT.</span></span></label>
+            <select class="fsel" id="fType" onchange="onChange()">
+              <option value="">— select —</option>
+              <option value="operator">Operator</option>
+              <option value="creator">Creator</option>
+              <option value="conversion">Conversion / Landing Page</option>
+              <option value="intelligence">Intelligence / Dashboard</option>
+            </select>
+          </div>
+          <div class="fld">
+            <label class="flbl">Product</label>
+            <select class="fsel" id="fProduct" onchange="onProductChange()">
+              <option value="">— select —</option>
+              <option value="Stardance">Stardance Platform</option>
+              <option value="Docente">Docente Platform</option>
+              <option value="SCOUT">SCOUT System</option>
+              <option value="MO-BASE">MO-BASE · new product name TBD</option>
+              <option value="Other">Other — Custom</option>
+            </select>
+            <input class="finp" id="fProductCustom" type="text" placeholder="Custom product name" oninput="onChange()" style="display:none;margin-top:5px;">
+          </div>
+          <div class="fld">
+            <label class="flbl"><span class="itip">CBC Primary Slot<span class="iico">?</span><span class="itt">CBC = Component Behaviour Contract. 13 canonical types. CBC owns behaviour. UIS owns aesthetics.</span></span></label>
+            <select class="fsel" id="fCBC" onchange="onChange()">
+              <option value="">— select —</option>
+              <option value="CBC-01">CBC-01 · Hero</option><option value="CBC-02">CBC-02 · Text Block</option>
+              <option value="CBC-03">CBC-03 · Image</option><option value="CBC-04">CBC-04 · Video</option>
+              <option value="CBC-05">CBC-05 · CTA</option><option value="CBC-06">CBC-06 · Form</option>
+              <option value="CBC-07">CBC-07 · Offer Stack</option><option value="CBC-08">CBC-08 · Social Proof</option>
+              <option value="CBC-09">CBC-09 · Testimonial</option><option value="CBC-10">CBC-10 · FAQ</option>
+              <option value="CBC-11">CBC-11 · Diagnostic Entry</option><option value="CBC-12">CBC-12 · Trust Bar</option>
+              <option value="CBC-13">CBC-13 · Content Grid</option>
+            </select>
+          </div>
+          <div class="fld">
+            <label class="flbl"><span class="itip">UIS Theme<span class="iico">?</span><span class="itt">UIS = UI Standard (Layer 8). Governs visual identity. Vega: teal precision. Nova: orange energy. Hydra: refined ink.</span></span></label>
+            <select class="fsel" id="fTheme" onchange="onChange()">
+              <option value="">— select —</option>
+              <option value="vega">Vega · Arctic Teal · #30ABCA</option>
+              <option value="nova">Nova · Signal Orange · #E8751A</option>
+              <option value="hydra">Hydra · Sumi Ink · #C8B89A</option>
+            </select>
+          </div>
+          <div class="fld">
+            <label class="flbl">Default Mode</label>
+            <select class="fsel" id="fMode" onchange="onChange()">
+              <option value="">— select —</option>
+              <option value="vibe">Vibe · Amber glow · ideas first</option>
+              <option value="dark">Dark · Night sky · pure signal</option>
+              <option value="light">Light · Full spectrum · nothing hidden</option>
+            </select>
+          </div>
+          <div class="trow">
+            <span class="tlbl"><span class="itip">Cinematic Surface (Tier 3A)<span class="iico">?</span><span class="itt">Fully animated, immersive build. Required for creator-facing hero surfaces. DRJ approval required before build begins.</span></span></span>
+            <label class="tgl"><input type="checkbox" id="fTier3A" onchange="onChange()"><div class="ttrk"></div><div class="tthm"></div></label>
+          </div>
+        </div>
+        <div class="ps">
+          <div class="slbl"><span class="itip">Creative Mandate<span class="iico">?</span><span class="itt">3 of 4 required. Vanilla is a UXC violation.</span></span></div>
+          <div class="mgrid">
+            <div class="mi" id="cm-motion" onclick="toggleM('motion')"><div class="mi-top"><div class="mbox" id="cm-motion-b"></div><span class="mtxt">Motion</span></div><div class="mi-desc">Purposeful animation with cinematic timing. Not decorative — must serve meaning.</div></div>
+            <div class="mi" id="cm-depth" onclick="toggleM('depth')"><div class="mi-top"><div class="mbox" id="cm-depth-b"></div><span class="mtxt">Depth</span></div><div class="mi-desc">Layered visual element — parallax, particle field, film grain, or vignette.</div></div>
+            <div class="mi" id="cm-character" onclick="toggleM('character')"><div class="mi-top"><div class="mbox" id="cm-character-b"></div><span class="mtxt">Character</span></div><div class="mi-desc">A distinctive typographic moment. Unmistakably SD in voice and style.</div></div>
+            <div class="mi" id="cm-memory" onclick="toggleM('memory')"><div class="mi-top"><div class="mbox" id="cm-memory-b"></div><span class="mtxt">Memory</span></div><div class="mi-desc">One element a user will remember and describe to someone else.</div></div>
+          </div>
+          <div class="mcnt" id="mcnt">0 / 4 · need 3 to pass</div>
+        </div>
+        <div class="pipe">
+          <div class="slbl">Surface Lifecycle</div>
+          <div class="pipe-trk" id="pipeTrack"></div>
+          <button class="adv-btn" id="advBtn" onclick="advance()">Advance State →</button>
+        </div>
+      </aside>
+      <section class="mode-right">
+        <nav class="tabs">
+          <button class="tbtn active" onclick="stab('validation',this)">Validation</button>
+          <button class="tbtn" onclick="stab('brief',this)">Claude Brief</button>
+          <button class="tbtn" onclick="stab('uat',this)">UAT</button>
+          <button class="tbtn" onclick="stab('lock',this)">DRJ Lock</button>
+        </nav>
+        <div class="tpane active" id="pane-validation">
+          <div class="ph">Contract Validation</div>
+          <div class="ps2">All 8 UXC contract layers evaluated live. Hover any card for a full explanation. Once all relevant layers show PASS, go to Claude Brief.</div>
+          <div class="flow-box">
+            <div class="slbl" style="margin-bottom:8px;">How to generate a surface</div>
+            <div class="flow-step"><div class="flow-num">1</div><div class="flow-txt"><strong>Fill the Brief Intake</strong>Complete all fields on the left. Validation updates live.</div></div>
+            <div class="flow-step"><div class="flow-num">2</div><div class="flow-txt"><strong>Check validation passes</strong>All relevant contracts should show PASS or N/A.</div></div>
+            <div class="flow-step"><div class="flow-num">3</div><div class="flow-txt"><strong>Go to Claude Brief → Copy</strong>Auto-generated from your intake. Copy to clipboard.</div></div>
+            <div class="flow-step"><div class="flow-num">4</div><div class="flow-txt"><strong>Open new Claude session → Paste → Build</strong>Paste brief as first message. Claude builds the surface.</div></div>
+            <div class="flow-step"><div class="flow-num">5</div><div class="flow-txt"><strong>UAT → DRJ Lock → Archive → Deploy</strong>Run UAT checklist, lock, export archive, CC commits to canon.</div></div>
+          </div>
+          <div class="cgrid" id="cGrid"></div>
+          <div class="act-hint" id="valHint" style="display:none"><span class="ah-txt">✓ Brief complete — ready to generate build brief</span><button class="ah-btn" onclick="stab('brief',document.querySelectorAll('.tbtn')[1])">Go to Brief →</button></div>
+        </div>
+        <div class="tpane" id="pane-brief">
+          <div class="ph">Claude Build Brief</div>
+          <div class="ps2">Copy → open new Claude session → paste as first message → Claude builds your surface.</div>
+          <div class="cnotice"><strong>Backend-ready contract</strong>v1 generates locally. Endpoint: <code>POST /api/v1/surfaces/:id/brief</code> — defined, not yet active.</div>
+          <div class="bout" id="briefOut">Fill the Brief Intake on the left to generate your build brief.</div>
+          <button class="cp-btn" id="cpBtn" onclick="copyBrief()"><span>⎘</span> Copy Brief to Clipboard</button>
+          <div class="next-steps">
+            <div class="ns-title">After copying — step by step</div>
+            <div class="ns-step"><div class="ns-num">1</div><div class="ns-txt">Open a new Claude conversation at <code>claude.ai</code></div></div>
+            <div class="ns-step"><div class="ns-num">2</div><div class="ns-txt">Paste the brief as your first message. Claude reads the constraints and begins generation immediately.</div></div>
+            <div class="ns-step"><div class="ns-num">3</div><div class="ns-txt">Claude outputs a complete HTML surface. Download and open in your browser for inline UAT.</div></div>
+            <div class="ns-step"><div class="ns-num">4</div><div class="ns-txt">Iterate in the same session. State changes — Claude refines and regenerates.</div></div>
+            <div class="ns-step"><div class="ns-num">5</div><div class="ns-txt">When UAT-ready, return here. Run the UAT checklist then proceed to DRJ Lock.</div></div>
+            <div class="ns-step"><div class="ns-num">6</div><div class="ns-txt"><strong>Theme switcher:</strong> Add <code>theme-switcher.js</code> from stardance-uxc-canon before the closing body tag. All 9 combinations — Vega/Nova/Hydra × Dark/Light/Vibe — are included.</div></div>
+          </div>
+        </div>
+        <div class="tpane" id="pane-uat">
+          <div class="ph">UAT Tracker</div>
+          <div class="ps2">Complete after the Claude-built surface is in your browser. Check each criterion then proceed to DRJ Lock.</div>
+          <div class="usec">
+            <div class="utitle">Creative Differentiation Mandate · need 3 of 4</div>
+            <div class="ucl" id="uatMandate">
+              <div class="ui" onclick="toggleU(this)"><input type="checkbox"><div class="ubox"></div><span class="utxt">Motion — purposeful animation sequence with cinematic timing</span></div>
+              <div class="ui" onclick="toggleU(this)"><input type="checkbox"><div class="ubox"></div><span class="utxt">Depth — layered visual element (parallax / particles / vignette / grain)</span></div>
+              <div class="ui" onclick="toggleU(this)"><input type="checkbox"><div class="ubox"></div><span class="utxt">Character — distinctive typographic moment — unmistakably SD</span></div>
+              <div class="ui" onclick="toggleU(this)"><input type="checkbox"><div class="ubox"></div><span class="utxt">Memory — one element the user will remember and describe</span></div>
+            </div>
+            <div class="uscr" id="uatMS">0 / 4 · need 3 to pass</div>
+          </div>
+          <div class="usec">
+            <div class="utitle">UXC Contract Gates · all 7 required</div>
+            <div class="ucl" id="uatContracts">
+              <div class="ui" onclick="toggleU(this)"><input type="checkbox"><div class="ubox"></div><span class="utxt">VG-IMS-01 · IMS state declaration present and visible</span></div>
+              <div class="ui" onclick="toggleU(this)"><input type="checkbox"><div class="ubox"></div><span class="utxt">VG-SVS-01 · All 5 visibility requirements exposed</span></div>
+              <div class="ui" onclick="toggleU(this)"><input type="checkbox"><div class="ubox"></div><span class="utxt">VG-TIS-01 · FLAG-B01 confidence score and band visible</span></div>
+              <div class="ui" onclick="toggleU(this)"><input type="checkbox"><div class="ubox"></div><span class="utxt">VG-UIS-01 · Theme declared and applied correctly</span></div>
+              <div class="ui" onclick="toggleU(this)"><input type="checkbox"><div class="ubox"></div><span class="utxt">VG-UIS-02 · Mode declared as vibe / dark / light — not classic</span></div>
+              <div class="ui" onclick="toggleU(this)"><input type="checkbox"><div class="ubox"></div><span class="utxt">VG-UIS-03 · 3×3 grid canonical if theme switcher present</span></div>
+              <div class="ui" onclick="toggleU(this)"><input type="checkbox"><div class="ubox"></div><span class="utxt">VG-CBC-01 · Canonical CBC type used and behaviour contract met</span></div>
+            </div>
+            <div class="uscr" id="uatCS">0 / 7</div>
+          </div>
+        </div>
+        <div class="tpane" id="pane-lock">
+          <div class="ph">DRJ Lock + Archive + Deploy</div>
+          <div class="ps2">Lock after UAT full pass. Irreversible without a new DRJ ruling.</div>
+          <div class="lcard">
+            <div class="lstat"><div class="li" id="lInd"></div><span class="llbl" id="lLbl">Unlocked — UAT must pass before locking</span></div>
+            <div class="fld"><label class="flbl">DRJ Approver</label><input class="finp" id="drjA" type="text" placeholder="DRJ name or handle"></div>
+            <div class="fld"><label class="flbl">Lock Reason</label><input class="finp" id="drjR" type="text" placeholder="UAT full pass · all criteria confirmed"></div>
+            <button class="lbtn" onclick="lockIt()">🔒 Lock Surface — DRJ Confirm</button>
+          </div>
+          <div class="lcard" id="lRecord" style="display:none"><div class="slbl">Lock Record</div><div id="lRecordContent"></div></div>
+          <div class="deploy-steps">
+            <div class="ds-title">Post-lock deployment process</div>
+            <div class="ds-step"><div class="ds-n">1</div><div class="ds-txt">Export Archive JSON below — generates canonical surface record.</div></div>
+            <div class="ds-step"><div class="ds-n">2</div><div class="ds-txt">CC copies locked HTML to <code>surfaces/approved/</code> in stardance-uxc-canon and commits.</div></div>
+            <div class="ds-step"><div class="ds-n">3</div><div class="ds-txt">CC commits archive JSON to <code>registry/surfaces/</code>.</div></div>
+            <div class="ds-step"><div class="ds-n">4</div><div class="ds-txt">Advance lifecycle to <code>archived → deployed</code> using the left panel.</div></div>
+            <div class="ds-step"><div class="ds-n">5</div><div class="ds-txt">CC deploys from canon repo to production (Railway or equivalent).</div></div>
+          </div>
+          <div class="cnotice"><strong>Backend-ready contract</strong><code>PUT /api/v1/surfaces/:id/state</code> · body: <code>{ state:"drj_locked", approver, reason, timestamp }</code> — defined, not active.</div>
+          <button class="abtn" onclick="exportArc()">↓ Export Archive JSON</button>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <!-- ══ SYSTEM MODE ══ -->
+  <div class="view" id="view-system">
+    <div class="sys-layout">
+      <nav class="sys-tabs">
+        <button class="sys-tab active" onclick="sysTab('pre-spec',this)">Step 0 · Pre-Spec Brief</button>
+        <button class="sys-tab" onclick="sysTab('intake',this)">Spec Intake</button>
+        <button class="sys-tab" onclick="sysTab('family',this)">Surface Family</button>
+        <button class="sys-tab" onclick="sysTab('brief',this)">System Brief</button>
+      </nav>
+      <div class="sys-pane active" id="sys-pane-pre-spec">
+        <div class="step0-badge">Step 0 — Do this before writing the specification</div>
+        <div class="ph">Pre-Spec Generation Brief</div>
+        <div class="ps2">Give this brief to any AI before it writes your system specification. It constrains the output to be UXC-native so the spec arrives pre-mapped to Activation Surface fields — no manual translation required.</div>
+        <div style="background:var(--caution-dim);border:1px solid rgba(217,119,6,.2);border-radius:var(--r);padding:10px 14px;font-size:10px;color:#e8b96a;line-height:1.6;margin-bottom:16px;">
+          <strong style="display:block;color:var(--caution);margin-bottom:3px;font-size:10px;letter-spacing:.08em;text-transform:uppercase;">Why this matters</strong>
+          Without this brief, a spec arrives in product language. The Activation Surface speaks UXC. This brief eliminates the translation — a spec written against it auto-populates Spec Intake in seconds.
+        </div>
+        <div class="brief-pre" id="preSpecContent">You are generating a system specification for the Stardance UXC Activation Surface.
+Your output MUST be valid JSON. Return ONLY the JSON — no explanation, no markdown.
+
+Required fields:
+  _uxc_schema:        "stardance-uxc-canon · system_spec · v1.0.1"
+  system_name:        canonical product name
+  product:            Stardance Platform | Docente Platform | SCOUT System | MO-BASE | Other
+  build_target:       html | react_tailwind | react_native | flutter
+  uis_theme:          vega | nova | hydra
+  uis_mode_default:   vibe | dark | light
+  design_doctrine:    one sentence governing UX principle
+  operator_modes:     [{id, label, access: full|partial|minimal}]
+  surface_family:     [{id: SF-001, name, purpose (one sentence), cbc: CBC-01 to CBC-13, mode, tier_3a: false}]
+  deployment_targets: [array of strings]
+  multi_ontology:     true | false
+  white_label:        true | false
+  phase_roadmap:      {Phase 1: [...], Phase 2: [...]}
+
+CBC Type Reference:
+  CBC-01 Hero         CBC-02 Text Block     CBC-03 Image         CBC-04 Video
+  CBC-05 CTA          CBC-06 Form           CBC-07 Offer Stack   CBC-08 Social Proof
+  CBC-09 Testimonial  CBC-10 FAQ            CBC-11 Diagnostic Entry
+  CBC-12 Trust Bar    CBC-13 Content Grid
+
+Mapping rules:
+  Map EVERY functional zone to exactly one CBC type
+  Operator/intelligence surfaces -> recommend dark mode
+  Creator/conversion surfaces -> recommend vibe mode
+  Do NOT use Figma frame names as IDs
+  Return ONLY the JSON object</div>
+        <button class="cp-btn" id="cpPreSpec" onclick="copyPreSpec()"><span>&#8856;</span> Copy Pre-Spec Brief</button>
+        <div style="margin-top:20px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;">
+          <div style="font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:var(--text3);margin-bottom:10px;">What to do with this brief</div>
+          <div class="ns-step"><div class="ns-num">1</div><div class="ns-txt">Copy the brief above.</div></div>
+          <div class="ns-step"><div class="ns-num">2</div><div class="ns-txt">Open a new Claude session (or any AI). Paste this brief as context or first message.</div></div>
+          <div class="ns-step"><div class="ns-num">3</div><div class="ns-txt">Describe your product system. The AI writes a UXC-native spec conforming to the schema above.</div></div>
+          <div class="ns-step"><div class="ns-num">4</div><div class="ns-txt">Copy the entire JSON spec the AI outputs.</div></div>
+          <div class="ns-step" style="border-bottom:none"><div class="ns-num" style="background:var(--primary-dim);border-color:var(--primary);color:var(--primary);">5</div><div class="ns-txt" style="color:var(--primary)">Go to Spec Intake tab, paste, and click Parse. Surface Family scaffolds automatically.</div></div>
+        </div>
+      </div>
+      <div class="sys-pane" id="sys-pane-intake">
+        <div class="ph">Spec Intake</div>
+        <div class="ps2">Paste your UXC-native system specification JSON. Claude reads it and scaffolds your Surface Family automatically. Best results: generate the spec using Step 0 first.</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+          <span style="font-size:10px;color:var(--text3);letter-spacing:.08em;text-transform:uppercase;">Specification JSON</span>
+          <button onclick="loadMoBase()" style="padding:3px 10px;background:var(--elevated);border:1px solid var(--border);border-radius:var(--r);font-size:9px;color:var(--text3);cursor:pointer;font-family:var(--fm);letter-spacing:.06em;text-transform:uppercase;">Load MO-BASE Example</button>
+        </div>
+        <textarea class="spec-area" id="specInput" placeholder="Paste your UXC System Spec JSON here..."></textarea>
+        <button class="parse-btn" id="parseBtn" onclick="parseSpec()">
+          <div class="spinner" id="parseSpinner"></div>
+          <span id="parseLbl">Parse with Claude - Scaffold Surface Family</span>
+        </button>
+        <div class="parse-status info" id="parseStatus" style="display:none"></div>
+        <div style="margin-top:16px;padding:10px 13px;background:var(--info-dim);border:1px solid rgba(37,99,235,.2);border-radius:var(--r);font-size:10px;color:#93b4e8;line-height:1.6;">
+          <strong style="color:var(--info);display:block;margin-bottom:3px;font-size:10px;letter-spacing:.08em;text-transform:uppercase;">Claude-in-Claude · Backend-ready</strong>
+          v1 calls the Claude API inline. Future: <code>POST /api/v1/systems/:id/spec</code>
+        </div>
+      </div>
+      <div class="sys-pane" id="sys-pane-family">
+        <div class="ph" id="sysFamilyTitle">Surface Family</div>
+        <div class="ps2" id="sysFamilyDesc">Parse a specification in the Spec Intake tab to scaffold your surface family.</div>
+        <div class="sys-meta-grid" id="sysMetaGrid" style="display:none">
+          <div class="sys-meta-card"><div class="sys-meta-lbl">System</div><div class="sys-meta-val" id="smSystem">-</div></div>
+          <div class="sys-meta-card"><div class="sys-meta-lbl">Product</div><div class="sys-meta-val" id="smProduct">-</div></div>
+          <div class="sys-meta-card"><div class="sys-meta-lbl">Build Target</div><div class="sys-meta-val" id="smBuildTarget">-</div></div>
+          <div class="sys-meta-card"><div class="sys-meta-lbl">Theme · Mode</div><div class="sys-meta-val" id="smThemeMode">-</div></div>
+        </div>
+        <div id="opModesWrap" style="display:none;margin-bottom:16px;">
+          <div class="slbl" style="margin-bottom:8px;">Operator Modes</div>
+          <div class="op-modes" id="opModes"></div>
+        </div>
+        <div class="slbl" style="margin-bottom:8px;">Surface Family · <span id="sfamCount">0</span> surfaces</div>
+        <div class="sfam-grid" id="sfamGrid">
+          <div class="sfam-empty">No surfaces yet — parse a specification in the Spec Intake tab.</div>
+        </div>
+      </div>
+      <div class="sys-pane" id="sys-pane-brief">
+        <div class="ph">System Brief</div>
+        <div class="ps2">Complete build context for each surface in the family. Copy and paste into Claude to begin each surface build in sequence.</div>
+        <div class="sys-brief-out" id="sysBriefOut"><span style="color:var(--text3)">Parse a specification in the Spec Intake tab to generate the System Brief.</span></div>
+        <button class="cp-btn" id="cpSysBtn" onclick="copySysBrief()" style="margin-top:10px;"><span>&#8856;</span> Copy System Brief</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ── Constants ──
+const STATES = ['brief_created','canon_checked','build_ready','in_build','uat_active','uat_passed','drj_locked','archived','deployed'];
+const STATE_INST = {brief_created:'Fill all brief intake fields. Advance when complete.',canon_checked:'Review validation. Resolve any FAIL before advancing.',build_ready:'Copy the Claude Brief and open a new Claude session.',in_build:'Iterating with Claude. Advance when surface is UAT-ready.',uat_active:'Run UAT checklist in the UAT tab.',uat_passed:'All criteria confirmed. Proceed to DRJ Lock.',drj_locked:'Export archive JSON. Have CC commit to canon.',archived:'Committed to surfaces/approved/. Ready to deploy.',deployed:'Surface is live in production.'};
+const CONTRACTS = [
+  {id:'IMS',layer:1,name:'Interaction Model Standard',governs:'Execution state machine',explain:'Governs the execution state visible to the operator: idle → validating → processing → complete. Every operator-facing surface must declare its state.'},
+  {id:'LPC',layer:2,name:'LLM Behaviour Contract',governs:'LLM output structure',explain:'Every LLM response must contain: what happened, why it matters, what to do next. Prevents raw model output from reaching the operator.'},
+  {id:'LIC',layer:3,name:'LLM Integration Contract',governs:'LLM invocation rules',explain:'Every LLM invocation must declare its calling_system. DRJ gate required before any new system makes its first LLM call.'},
+  {id:'SVS',layer:4,name:'State Visibility Standard',governs:'5 visibility requirements',explain:'Must always be visible: (1) signals used, (2) canon applied, (3) decision made, (4) confidence, (5) what will be learned.'},
+  {id:'SNC',layer:5,name:'System Navigation Contract',governs:'Navigation + context persistence',explain:'Navigation must be consistent across operator surfaces. Context must persist across navigation transitions.'},
+  {id:'CBC',layer:6,name:'Component Behaviour Contract',governs:'Component behaviour semantics',explain:'13 canonical types cover every surface need. CBC owns behaviour semantics. UIS owns aesthetic expression. R2 ruling 2026-05-05.'},
+  {id:'TIS',layer:7,name:'Trust & Insight Surface',governs:'Confidence + trust signals',explain:'Must show FLAG-B01 score and band (HIGH/MEDIUM/LOW). Ethics gate blocks must identify category — not just "blocked".'},
+  {id:'UIS',layer:8,name:'UI Standard',governs:'Theme · Mode · Creative Differentiation',explain:'Layer 8. Governs visual identity: theme (Vega/Nova/Hydra), mode (vibe/dark/light), and Creative Differentiation Mandate (3 of 4).'}
+];
+const STATE_COLOURS = {brief_created:'var(--text3)',canon_checked:'var(--info)',build_ready:'var(--primary)',in_build:'var(--primary)',uat_active:'var(--caution)',uat_passed:'var(--pass)',drj_locked:'var(--pass)',archived:'var(--pass)',deployed:'var(--pass)'};
+
+// ── App State ──
+let S = {
+  id:'SD-SURF-'+String(Math.floor(Math.random()*9000)+1000),
+  name:'',type:'',product:'',productCustom:'',cbc:'',theme:'',mode:'',tier3a:false,
+  mandate:[],li:0,locked:false,drjA:'',drjR:'',drjTs:null,
+  uiMode:'dark',created:new Date().toISOString()
+};
+let currentView = 'hub';
+
+// ── Persistence ──
+function save(){try{localStorage.setItem('uxc-v12',JSON.stringify(S));}catch(e){}}
+function load(){
+  try{
+    const d=localStorage.getItem('uxc-v12');
+    if(d){S={...S,...JSON.parse(d)};applyToForm();if(S.uiMode)setMode(S.uiMode);}
+  }catch(e){}
+}
+
+// ── Navigation ──
+function goMode(mode){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-'+mode).classList.add('active');
+  currentView=mode;
+  // Update header
+  const hl=document.getElementById('hdrLeft');
+  hl.innerHTML = mode==='hub'
+    ? '<span class="mk">STARDANCE</span><span class="sep">/</span><span style="color:var(--text2)">UXC ACTIVATION SURFACE</span><span class="sep">·</span><span style="color:var(--text3)">GOVERNED BUILD PIPELINE</span>'
+    : '<span class="mk">STARDANCE</span><span class="sep">/</span><span class="bc" onclick="goMode('hub')">Hub</span><span class="sep">/</span><span style="color:var(--text2)">'+mode.charAt(0).toUpperCase()+mode.slice(1)+' Build</span>';
+  if(mode==='surface') renderActivity();
+}
+
+// ── Mode toggle ──
+function setMode(m){
+  document.documentElement.dataset.mode=m;
+  S.uiMode=m;
+  document.getElementById('modeBtn').textContent=m==='dark'?'☀ Light':'☾ Dark';
+}
+function toggleMode(){setMode(S.uiMode==='dark'?'light':'dark');save();}
+
+// ── Form ──
+function applyToForm(){
+  const el=id=>document.getElementById(id);
+  el('surfaceId').textContent=S.id;
+  el('fName').value=S.name||'';el('fType').value=S.type||'';
+  el('fProduct').value=S.product||'';el('fCBC').value=S.cbc||'';
+  el('fTheme').value=S.theme||'';el('fMode').value=S.mode||'';
+  el('fTier3A').checked=S.tier3a||false;
+  if(S.product==='Other'){el('fProductCustom').style.display='block';el('fProductCustom').value=S.productCustom||'';}
+  S.mandate.forEach(m=>{
+    const em=document.getElementById('cm-'+m),eb=document.getElementById('cm-'+m+'-b');
+    if(em){em.classList.add('chk');eb.textContent='✓';}
+  });
+}
+function onChange(){
+  S.name=document.getElementById('fName').value;S.type=document.getElementById('fType').value;
+  S.product=document.getElementById('fProduct').value;S.productCustom=document.getElementById('fProductCustom').value;
+  S.cbc=document.getElementById('fCBC').value;S.theme=document.getElementById('fTheme').value;
+  S.mode=document.getElementById('fMode').value;S.tier3a=document.getElementById('fTier3A').checked;
+  updateAll();save();
+}
+function onProductChange(){
+  const v=document.getElementById('fProduct').value,ci=document.getElementById('fProductCustom');
+  ci.style.display=v==='Other'?'block':'none';if(v!=='Other')ci.value='';
+  onChange();
+}
+function toggleM(m){
+  const el=document.getElementById('cm-'+m),b=document.getElementById('cm-'+m+'-b');
+  if(S.mandate.includes(m)){S.mandate=S.mandate.filter(x=>x!==m);el.classList.remove('chk');b.textContent='';}
+  else{S.mandate.push(m);el.classList.add('chk');b.textContent='✓';}
+  updateMC();updateVal();updateBrief();save();
+}
+function updateMC(){
+  const n=S.mandate.length,el=document.getElementById('mcnt');
+  el.textContent=n+' / 4 · '+(n>=3?'mandate ok':'need '+(3-n)+' more');
+  el.className='mcnt '+(n>=3?'ok':n===2?'warn':'');
+}
+
+// ── Pipeline ──
+function renderPipeline(){
+  const t=document.getElementById('pipeTrack');
+  t.innerHTML=STATES.map((s,i)=>{
+    const c=i<S.li?'done':i===S.li?'active':'';
+    const inst=i===S.li?'<div class="pipe-inst">'+(STATE_INST[s]||'')+'</div>':'';
+    return '<div class="pipe-s '+c+'"><span class="pipe-sn">'+s.replace(/_/g,' ')+'</span>'+inst+'</div>';
+  }).join('');
+  const b=document.getElementById('advBtn');
+  const done=S.li>=STATES.length-1;
+  b.disabled=done;b.textContent=done?'✓ Deployed':'Advance State →';
+}
+function advance(){if(S.li<STATES.length-1){S.li++;renderPipeline();save();updateVal();}}
+
+// ── Validation ──
+function getVS(c){
+  if(!S.type)return'pending';
+  const isOp=['operator','intelligence'].includes(S.type);
+  switch(c.id){
+    case'UIS':if(!S.theme||!S.mode)return'fail';if(S.mandate.length<3)return'warn';return'pass';
+    case'CBC':return S.cbc?'pass':'fail';
+    case'IMS':case'SVS':return S.li>=1?'pass':'pending';
+    case'LPC':case'LIC':return isOp?'pending':'na';
+    case'TIS':return isOp?'pending':'na';
+    case'SNC':return S.li>=2?'pass':'pending';
+    default:return'pending';
+  }
+}
+function getCN(c){
+  switch(c.id){
+    case'UIS':if(!S.theme)return'Select a theme to validate';if(!S.mode)return'Select a mode to validate';
+      if(S.mandate.length<3)return'Creative mandate: '+S.mandate.length+'/4 — need 3';
+      return S.theme+' · '+S.mode+' · '+S.mandate.length+'/4 mandate ✓';
+    case'CBC':return S.cbc?S.cbc+' declared':'Select a CBC slot to validate';
+    case'IMS':return'Execution state machine';case'SVS':return'5 visibility requirements';
+    case'LPC':return'LLM output structure';case'LIC':return'LLM gate — DRJ required';
+    case'TIS':return'FLAG-B01 · confidence · ethics gate';case'SNC':return'Navigation + context persistence';
+    default:return c.governs;
+  }
+}
+function updateVal(){
+  document.getElementById('cGrid').innerHTML=CONTRACTS.map(c=>{
+    const st=getVS(c),n=getCN(c);
+    return'<div class="ccard-v '+st+'"><div class="chdr"><span class="cid">'+c.layer+' · '+c.id+'</span><span class="spill '+st+'">'+st+'</span></div><div class="cnm">'+c.name+'</div><div class="cnote">'+n+'</div><div class="cexp">'+c.explain+'</div></div>';
+  }).join('');
+  const complete=!!(S.type&&S.product&&S.cbc&&S.theme&&S.mode&&S.mandate.length>=3);
+  document.getElementById('valHint').style.display=complete?'flex':'none';
+}
+
+// ── Brief ──
+function productLabel(){return S.product==='Other'?S.productCustom||'Custom':S.product;}
+function buildBriefTxt(){
+  if(!S.type)return'Complete the Brief Intake on the left.';
+  const ref=S.product==='Docente'?'surfaces/approved/docente-cinematic-hero.html':S.product==='Stardance'?'surfaces/in-progress/stardance-cinematic-hero.html':'surfaces/approved/[select-reference.html]';
+  const pad=(s,n)=>s+' '.repeat(Math.max(0,n-s.length));
+  const row=(k,v)=>pad(k,24)+v;
+  return[
+    '────────────────────────────────────────────────────',
+    'UXC SURFACE BUILD BRIEF · v1.2 · stardance-uxc-canon',
+    '────────────────────────────────────────────────────',
+    '',
+    row('Surface ID',S.id),row('Surface name',S.name||'[add name]'),row('Surface type',S.type),row('Product',productLabel()),
+    '',
+    row('CBC primary slot',S.cbc||'[select CBC slot]'),row('UIS theme',S.theme||'[select theme]'),
+    row('UIS mode default',S.mode||'[select mode]'),row('Cinematic (Tier 3A)',S.tier3a?'Yes — cinematic required':'No'),
+    '',
+    row('Creative mandate',(S.mandate.length?S.mandate.join(' · '):'[select 3 of 4]')+' (3 of 4 required)'),
+    '  Vanilla is a UXC violation.',
+    '',
+    '── UXC Compliance ────────────────────────────────',
+    row('IMS states','idle / validating / processing / complete / partial / failed'),
+    row('SVS visibility','All 5 requirements exposed to operator'),
+    row('TIS trust surface','FLAG-B01 · confidence band · ethics gate categories'),
+    row('SD+H test','User is subject in all copy — system is instrument'),
+    '',
+    '── Build Reference ───────────────────────────────',
+    row('Reference surface',ref),
+    row('Theme switcher','components/theme-switcher.js — all 9 combinations included'),
+    '',
+    '── Governance ────────────────────────────────────',
+    row('UXC version','1.0.1'),row('Canon repo','https://github.com/STDC26/stardance-uxc-canon'),
+    row('Lifecycle state',STATES[S.li].replace(/_/g,' ')),
+    '────────────────────────────────────────────────────',
+  ].join('
+');
+}
+function updateBrief(){
+  const el=document.getElementById('briefOut'),txt=buildBriefTxt();
+  if(!S.type){el.innerHTML='<span style="color:var(--text3)">'+txt+'</span>';return;}
+  el.innerHTML=txt.split('
+').map(l=>{
+    if(l.startsWith('──')||l.startsWith('UXC SURFACE'))return'<span style="color:var(--text3)">'+l+'</span>';
+    if(!l.trim())return'';
+    const sp=l.indexOf('  ');
+    if(sp<2||sp>26)return'<span style="color:var(--text2)">'+l+'</span>';
+    const k=l.substring(0,sp),v=l.substring(sp).trim();
+    return'<span class="k">'+k+'</span>'+'&nbsp;'.repeat(Math.max(0,24-k.length))+'<span class="'+(v.startsWith('[')?'vw':'v')+'">'+v+'</span>';
+  }).join('
+');
+}
+function copyBrief(){
+  navigator.clipboard.writeText(buildBriefTxt()).then(()=>{
+    const b=document.getElementById('cpBtn');
+    b.classList.add('copied');b.innerHTML='<span>✓</span> Copied — open Claude → paste → build';
+    setTimeout(()=>{b.classList.remove('copied');b.innerHTML='<span>⎘</span> Copy Brief to Clipboard';},3000);
+  });
+}
+
+// ── UAT ──
+function toggleU(el){el.classList.toggle('chk');el.querySelector('.ubox').textContent=el.classList.contains('chk')?'✓':'';updateUAT();}
+function updateUAT(){
+  const m=document.querySelectorAll('#uatMandate .ui.chk').length,c=document.querySelectorAll('#uatContracts .ui.chk').length;
+  document.getElementById('uatMS').innerHTML=m>=3?'<span class="ok">'+m+' / 4 · ✓ Mandate passed</span>':m+' / 4 · need '+(3-m)+' more';
+  document.getElementById('uatCS').innerHTML=c===7?'<span class="ok">7 / 7 · ✓ All gates passed — proceed to DRJ Lock</span>':c+' / 7';
+}
+
+// ── DRJ Lock ──
+function lockIt(){
+  const a=document.getElementById('drjA').value,r=document.getElementById('drjR').value;
+  if(!a||!r){alert('DRJ approver and lock reason required.');return;}
+  S.locked=true;S.drjA=a;S.drjR=r;S.drjTs=new Date().toISOString();
+  S.li=Math.max(S.li,STATES.indexOf('drj_locked'));
+  document.getElementById('lInd').className='li locked';
+  document.getElementById('lLbl').textContent='Locked · '+a+' · '+new Date(S.drjTs).toLocaleDateString();
+  const rec=document.getElementById('lRecord');rec.style.display='block';
+  document.getElementById('lRecordContent').innerHTML=[['Approver',a],['Reason',r],['Timestamp',S.drjTs],['Surface ID',S.id],['State','drj_locked']].map(([k,v])=>'<div class="irow"><span>'+k+'</span><span class="val">'+v+'</span></div>').join('');
+  renderPipeline();save();saveActivity();
+}
+function exportArc(){
+  const arc={_schema:'stardance-uxc-canon · surface_record · v1.0.1',id:S.id,name:S.name,type:S.type,product:productLabel(),cbc_primary:S.cbc,uis_theme:S.theme,uis_mode:S.mode,tier_3a:S.tier3a,mandate:S.mandate,lifecycle_state:STATES[S.li],drj_lock:S.locked?{approver:S.drjA,reason:S.drjR,timestamp:S.drjTs}:null,created_at:S.created,exported_at:new Date().toISOString(),uxc_version:'1.0.1',canon_repo:'https://github.com/STDC26/stardance-uxc-canon'};
+  const b=new Blob([JSON.stringify(arc,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=S.id+'-archive.json';a.click();
+}
+
+// ── Activity Strip ──
+function saveActivity(){
+  try{
+    let acts=JSON.parse(localStorage.getItem('uxc-acts')||'[]');
+    acts=acts.filter(a=>a.id!==S.id);
+    acts.unshift({id:S.id,name:S.name,state:STATES[S.li],type:S.type,ts:Date.now()});
+    acts=acts.slice(0,3);
+    localStorage.setItem('uxc-acts',JSON.stringify(acts));
+  }catch(e){}
+}
+function renderActivity(){
+  const acts=JSON.parse(localStorage.getItem('uxc-acts')||'[]');
+  const al=document.getElementById('actList');
+  if(!acts.length){al.innerHTML='<div class="act-empty">No recent activity — start a build above</div>';return;}
+  al.innerHTML=acts.map(a=>{
+    const col=STATE_COLOURS[a.state]||'var(--text3)';
+    const label=a.state.replace(/_/g,' ');
+    const modeTag=a.type?'<span class="act-mode">'+a.type+'</span>':'';
+    return'<div class="act-item" onclick="resumeActivity(''+a.id+'')"><div class="act-dot" style="background:'+col+';box-shadow:0 0 5px '+col+'40"></div><span class="act-state">'+label+'</span><span class="act-id">'+a.id+'</span><span class="act-name">'+(a.name||'Untitled')+'</span>'+modeTag+'</div>';
+  }).join('');
+}
+function resumeActivity(id){
+  // Resume: load the activity record and navigate to surface mode
+  goMode('surface');
+  // In a full backend version, this would load the full surface record
+}
+
+// ── Tabs ──
+function stab(n,btn){
+  document.querySelectorAll('.tpane').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tbtn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('pane-'+n).classList.add('active');btn.classList.add('active');
+}
+
+// ── Update all ──
+function updateAll(){updateMC();updateVal();updateBrief();renderPipeline();}
+
+// ── New Surface ──
+function newSurface(){
+  saveActivity();
+  S={id:'SD-SURF-'+String(Math.floor(Math.random()*9000)+1000),name:'',type:'',product:'',productCustom:'',cbc:'',theme:'',mode:'',tier3a:false,mandate:[],li:0,locked:false,drjA:'',drjR:'',drjTs:null,uiMode:S.uiMode,created:new Date().toISOString()};
+  ['cm-motion','cm-depth','cm-character','cm-memory'].forEach(id=>{const el=document.getElementById(id);if(el)el.classList.remove('chk');const b=document.getElementById(id+'-b');if(b)b.textContent='';});
+  document.getElementById('fProductCustom').style.display='none';
+  document.getElementById('lRecord').style.display='none';
+  document.getElementById('lInd').className='li';
+  document.getElementById('lLbl').textContent='Unlocked — UAT must pass before locking';
+  applyToForm();updateAll();save();
+}
+
+
+// ── SYSTEM STATE ──
+let SYS = {
+  parsed: false,
+  spec: null,
+  surfaces: []
+};
+
+function sysTab(n, btn) {
+  document.querySelectorAll('.sys-pane').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.sys-tab').forEach(b => b.classList.remove('active'));
+  document.getElementById('sys-pane-' + n).classList.add('active');
+  btn.classList.add('active');
+}
+
+function copyPreSpec() {
+  // Get the raw text from the brief-pre div, stripping HTML tags
+  const el = document.getElementById('preSpecBrief');
+  const txt = el.innerText || el.textContent;
+  navigator.clipboard.writeText(txt.trim()).then(() => {
+    const b = document.getElementById('cpPreSpec');
+    b.classList.add('copied'); b.innerHTML = '<span>✓</span> Copied — paste into Claude or any AI';
+    setTimeout(() => { b.classList.remove('copied'); b.innerHTML = '<span>⎘</span> Copy Pre-Spec Brief'; }, 3000);
+  });
+}
+
+const MO_BASE_EXAMPLE = '{\n  "_uxc_schema": "stardance-uxc-canon · system_spec · v1.0.1",\n  "system_name": "MO-BASE Operator Surface",\n  "product": "MO-BASE",\n  "build_target": "react_tailwind",\n  "uis_theme": "vega",\n  "uis_mode_default": "dark",\n  "design_doctrine": "Interface serves insight — operator reaches meaningful judgment in under 30 seconds.",\n  "operator_modes": [\n    { "id": "founder", "label": "Founder", "access": "full" },\n    { "id": "analyst", "label": "Analyst", "access": "partial" },\n    { "id": "client",  "label": "Client",  "access": "minimal" }\n  ],\n  "surface_family": [\n    { "id": "SF-001", "name": "Control Bar", "purpose": "Operator defines the question — selects ontology, input type, and triggers analysis.", "cbc": "CBC-11", "mode": "dark", "tier_3a": false },\n    { "id": "SF-002", "name": "Interpretation Block", "purpose": "Primary cognitive focus — surfaces Q1 Premise, Q2 Context, Q3 Direction, confidence, and status.", "cbc": "CBC-02", "mode": "dark", "tier_3a": false },\n    { "id": "SF-003", "name": "Scoring Matrix", "purpose": "Structured evaluation visibility — aggregate score, dimension scores, thresholds, and gap highlights.", "cbc": "CBC-13", "mode": "dark", "tier_3a": false },\n    { "id": "SF-004", "name": "Trace Panel", "purpose": "Deep inspection and enterprise trust — signals, mapping, rule application, score derivation.", "cbc": "CBC-10", "mode": "dark", "tier_3a": false },\n    { "id": "SF-005", "name": "Action Layer", "purpose": "Close the operational learning loop — Execute, Test, Watch, Export, Escalate, Flag, feedback capture.", "cbc": "CBC-05", "mode": "dark", "tier_3a": false }\n  ],\n  "deployment_targets": ["stardance", "scout", "docente", "enterprise_saas", "iframe", "standalone_saas"],\n  "multi_ontology": true,\n  "white_label": true,\n  "phase_roadmap": {\n    "Phase 1": ["Single analysis mode", "Multi-analysis comparison", "Interpretation block", "Trace panel", "Action layer"],\n    "Phase 2": ["Role-based access control", "Saved sessions", "Ontology management UI", "Feedback analytics"],\n    "Phase 3": ["Override governance", "Human calibration workflows", "Learning loop integration"],\n    "Phase 4": ["Real-time monitoring", "Signal streaming", "Predictive insights", "Multi-agent orchestration"]\n  }\n}';
+
+function loadMoBaseExample() {
+  document.getElementById('specInput').value = MO_BASE_EXAMPLE;
+  setParseStatus('info', 'MO-BASE reference spec loaded — click Parse to scaffold the surface family.');
+}
+
+function setParseStatus(type, msg) {
+  const el = document.getElementById('parseStatus');
+  el.style.display = 'block';
+  el.className = 'parse-status ' + type;
+  el.textContent = msg;
+}
+
+async function parseSpec() {
+  const specText = document.getElementById('specInput').value.trim();
+  if (!specText) { setParseStatus('err', 'Paste a specification JSON before parsing.'); return; }
+
+  const btn = document.getElementById('parseBtn');
+  const lbl = document.getElementById('parseLbl');
+  btn.disabled = true; btn.classList.add('loading');
+  lbl.textContent = 'Parsing with Claude...';
+  setParseStatus('info', 'Claude is reading your specification...');
+
+  const extractPrompt = `You are parsing a product system specification for the Stardance UXC Activation Surface.
+
+Read the specification below and extract structured data. Return ONLY valid JSON — no explanation, no markdown fences, no preamble.
+
+Required output structure:
+{
+  "system_name": "string",
+  "product": "one of: Stardance Platform | Docente Platform | SCOUT System | MO-BASE | Other",
+  "build_target": "one of: html | react_tailwind | react_native | flutter",
+  "uis_theme": "one of: vega | nova | hydra",
+  "uis_mode_default": "one of: vibe | dark | light",
+  "design_doctrine": "one sentence",
+  "operator_modes": [{"id": "string", "label": "string", "access": "full|partial|minimal"}],
+  "surface_family": [{"id": "SF-XXX", "name": "string", "purpose": "one sentence", "cbc": "CBC-01 through CBC-13", "mode": "vibe|dark|light", "tier_3a": false}],
+  "deployment_targets": ["array"],
+  "multi_ontology": false,
+  "white_label": false
+}
+
+CBC mapping: CBC-01=Hero, CBC-02=Text Block, CBC-03=Image, CBC-04=Video, CBC-05=CTA, CBC-06=Form, CBC-07=Offer Stack, CBC-08=Social Proof, CBC-09=Testimonial, CBC-10=FAQ, CBC-11=Diagnostic Entry, CBC-12=Trust Bar, CBC-13=Content Grid
+
+Rules: Map every functional zone to exactly one CBC type. Return ONLY the JSON object.
+
+SPECIFICATION:
+${specText}`;
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: extractPrompt }]
+      })
+    });
+
+    const data = await response.json();
+    const rawText = data.content?.filter(b => b.type === 'text').map(b => b.text).join('') || '';
+    
+    // Strip any markdown fences
+    const clean = rawText.replace(/```json|```/g, '').trim();
+    const parsed = JSON.parse(clean);
+    
+    SYS.parsed = true;
+    SYS.spec = parsed;
+    SYS.surfaces = parsed.surface_family || [];
+    
+    populateSurfaceFamily(parsed);
+    generateSystemBrief(parsed);
+    setParseStatus('ok', `✓ Parsed — ${SYS.surfaces.length} surfaces scaffolded in Surface Family`);
+    
+    // Auto-switch to family tab
+    setTimeout(() => {
+      document.querySelectorAll('.sys-tab')[2].click();
+    }, 800);
+
+  } catch (err) {
+    // Try to parse spec directly as UXC-native JSON (if already structured)
+    try {
+      const direct = JSON.parse(specText);
+      if (direct.surface_family) {
+        SYS.parsed = true; SYS.spec = direct; SYS.surfaces = direct.surface_family || [];
+        populateSurfaceFamily(direct);
+        generateSystemBrief(direct);
+        setParseStatus('ok', `✓ Direct parse — ${SYS.surfaces.length} surfaces scaffolded`);
+        setTimeout(() => document.querySelectorAll('.sys-tab')[2].click(), 800);
+      } else {
+        setParseStatus('err', 'Could not parse spec. Ensure it is valid JSON and contains a surface_family array. Try Step 0 to generate a UXC-native spec first.');
+      }
+    } catch (e) {
+      setParseStatus('err', 'Parse error: ' + err.message + '. Check the spec is valid JSON.');
+    }
+  } finally {
+    btn.disabled = false; btn.classList.remove('loading');
+    lbl.textContent = '⚡ Parse with Claude → Scaffold Surface Family';
+  }
+}
+
+function populateSurfaceFamily(spec) {
+  // Meta grid
+  document.getElementById('sysMetaGrid').style.display = 'grid';
+  document.getElementById('smSystem').textContent = spec.system_name || '—';
+  document.getElementById('smProduct').textContent = spec.product || '—';
+  document.getElementById('smBuildTarget').textContent = spec.build_target || '—';
+  document.getElementById('smThemeMode').textContent = (spec.uis_theme || '—') + ' · ' + (spec.uis_mode_default || '—');
+  document.getElementById('sysFamilyTitle').textContent = spec.system_name || 'Surface Family';
+  document.getElementById('sysFamilyDesc').textContent = spec.design_doctrine || 'Parsed from specification.';
+
+  // Operator modes
+  const modes = spec.operator_modes || [];
+  if (modes.length) {
+    document.getElementById('opModesWrap').style.display = 'block';
+    const accessColors = {full:'var(--primary)',partial:'var(--caution)',minimal:'var(--text3)'};
+    document.getElementById('opModes').innerHTML = modes.map(m =>
+      '<div class="op-mode-chip"><strong>' + m.label + '</strong><span style="color:' + (accessColors[m.access]||'var(--text3)') + '">' + m.access + ' access</span></div>'
+    ).join('');
+  }
+
+  // Surface family cards
+  const surfaces = spec.surface_family || [];
+  document.getElementById('sfamCount').textContent = surfaces.length;
+  document.getElementById('sfamLbl').style.display = 'block';
+
+  if (!surfaces.length) {
+    document.getElementById('sfamGrid').innerHTML = '<div class="sfam-empty">No surface_family array found in spec. Use Step 0 to generate a UXC-native spec.</div>';
+    return;
+  }
+
+  document.getElementById('sfamGrid').innerHTML = surfaces.map((s, i) => {
+    const t3a = s.tier_3a ? '<span class="sfam-tag t3a">Cinematic Tier 3A</span>' : '';
+    return '<div class="sfam-card">' +
+      '<div class="sfam-num">' + (i+1) + '</div>' +
+      '<div class="sfam-body">' +
+        '<div class="sfam-id">' + s.id + '</div>' +
+        '<div class="sfam-name">' + s.name + '</div>' +
+        '<div class="sfam-purpose">' + s.purpose + '</div>' +
+        '<div class="sfam-tags">' +
+          '<span class="sfam-tag cbc">' + s.cbc + '</span>' +
+          '<span class="sfam-tag mode">' + s.mode + '</span>' +
+          t3a +
+        '</div>' +
+      '</div>' +
+      '<div class="sfam-state"><span class="spill pending">brief_created</span></div>' +
+    '</div>';
+  }).join('');
+}
+
+function generateSystemBrief(spec) {
+  const surfaces = spec.surface_family || [];
+  const pad = (s, n) => s + ' '.repeat(Math.max(0, n - s.length));
+  const row = (k, v) => pad(k, 22) + v;
+  
+  const lines = [
+    '────────────────────────────────────────────────────────',
+    'UXC SYSTEM BUILD BRIEF · v1.2 · stardance-uxc-canon',
+    '────────────────────────────────────────────────────────',
+    '',
+    row('System', spec.system_name || '[system name]'),
+    row('Product', spec.product || '[product]'),
+    row('Build Target', spec.build_target || '[build target]'),
+    row('UIS Theme', spec.uis_theme || '[theme]'),
+    row('UIS Mode Default', spec.uis_mode_default || '[mode]'),
+    '',
+    '── Design Doctrine ──────────────────────────────────',
+    spec.design_doctrine || '[design doctrine]',
+    '',
+    '── Surface Family (' + surfaces.length + ' surfaces) ──────────────────────',
+    ...surfaces.map((s, i) =>
+      (i+1) + '. ' + s.id + ' · ' + s.name + '
+   ' + s.cbc + ' · ' + s.mode + (s.tier_3a ? ' · Cinematic Tier 3A' : '') + '
+   ' + s.purpose
+    ),
+    '',
+    '── Operator Modes ───────────────────────────────────',
+    ...(spec.operator_modes || []).map(m => '· ' + m.label + ' (' + m.access + ' access)'),
+    '',
+    '── Deployment Targets ───────────────────────────────',
+    (spec.deployment_targets || []).join(' · '),
+    '',
+    '── UXC Compliance ───────────────────────────────────',
+    row('IMS states', 'idle / validating / processing / complete / partial / failed'),
+    row('SVS visibility', 'All 5 requirements exposed'),
+    row('TIS trust surface', 'FLAG-B01 · confidence band · ethics gate categories'),
+    row('SD+H test', 'User is subject in all copy — system is instrument'),
+    row('Multi-ontology', spec.multi_ontology ? 'Yes — no UI refactor on ontology add' : 'No'),
+    row('White label', spec.white_label ? 'Yes — stateless presentation layer' : 'No'),
+    '',
+    '── Governance ───────────────────────────────────────',
+    row('UXC version', '1.0.1'),
+    row('Canon repo', 'https://github.com/STDC26/stardance-uxc-canon'),
+    '────────────────────────────────────────────────────────',
+    '',
+    'BUILD EACH SURFACE SEPARATELY:',
+    'For each surface in the family above, open a new Claude session.',
+    'Paste this System Brief + the specific surface details as your first message.',
+    'Claude builds that surface. UAT → DRJ Lock → Archive → next surface.',
+  ];
+
+  const el = document.getElementById('sysBriefOut');
+  el.innerHTML = lines.map(l => {
+    if (l.startsWith('──') || l.startsWith('UXC SYSTEM') || l.startsWith('BUILD')) return '<span class="h">' + l + '</span>';
+    if (!l.trim()) return '';
+    const sp = l.indexOf('  ');
+    if (sp > 1 && sp < 24) {
+      const k = l.substring(0, sp), v = l.substring(sp).trim();
+      return '<span class="k">' + k + '</span>' + '&nbsp;'.repeat(Math.max(0,22-k.length)) + '<span class="v">' + v + '</span>';
+    }
+    return '<span style="color:var(--text2)">' + l + '</span>';
+  }).join('
+');
+}
+
+function copySysBrief() {
+  const el = document.getElementById('sysBriefOut');
+  const txt = el.innerText || el.textContent;
+  navigator.clipboard.writeText(txt.trim()).then(() => {
+    const b = document.getElementById('cpSysBtn');
+    b.classList.add('copied'); b.innerHTML = '<span>✓</span> Copied — open Claude → paste → build';
+    setTimeout(() => { b.classList.remove('copied'); b.innerHTML = '<span>⎘</span> Copy System Brief'; }, 3000);
+  });
+}
+
+// ── Init ──
+document.getElementById('surfaceId').textContent=S.id;
+load();updateAll();renderActivity();
+</script>
+</body>
+</html>
