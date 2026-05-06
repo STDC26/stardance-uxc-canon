@@ -1,1 +1,636 @@
-<!-- docente-cinematic-hero.html — placeholder. Replace with file from sd-ui-canon-v1.0.0.zip -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Docente — Cinematic Hero · CBC-01 · Tier 3A</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;1,300;1,400;1,500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root {
+  --bg:        #04040c;
+  --bg-2:      #07070f;
+  --bg-3:      #0a0a14;
+  --text:      #ede9e4;
+  --text-2:    #8888a8;
+  --text-3:    #404060;
+  --accent:    #30ABCA;
+  --accent-w:  #C8A84A;
+  --border:    rgba(255,255,255,0.055);
+}
+
+html { font-size: 16px; scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  cursor: none;
+}
+
+/* ── Custom cursor ── */
+.cursor {
+  position: fixed;
+  width: 6px; height: 6px;
+  background: var(--accent);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9999;
+  transform: translate(-50%,-50%);
+  transition: opacity 0.2s;
+  mix-blend-mode: screen;
+}
+.cursor-ring {
+  position: fixed;
+  width: 32px; height: 32px;
+  border: 0.5px solid rgba(48,171,202,0.4);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9998;
+  transform: translate(-50%,-50%);
+  transition: transform 0.12s ease, width 0.2s, height 0.2s, border-color 0.2s;
+}
+
+/* ── Canvas ── */
+#stars {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  opacity: 0;
+  animation: fadeIn 2.5s ease 0.3s forwards;
+}
+
+/* ── Hero ── */
+.hero {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+  overflow: hidden;
+}
+
+/* Vignette */
+.vignette {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 90% 90% at 50% 50%, transparent 25%, rgba(4,4,12,0.92) 100%),
+    linear-gradient(180deg, rgba(4,4,12,0.5) 0%, transparent 20%, transparent 75%, rgba(4,4,12,0.9) 100%);
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* Grain */
+.grain {
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: 0.04;
+  z-index: 3;
+  pointer-events: none;
+  mix-blend-mode: soft-light;
+}
+
+/* Light shaft */
+.shaft {
+  position: absolute;
+  top: 0; left: 50%;
+  transform: translateX(-50%);
+  width: 600px; height: 70vh;
+  background: radial-gradient(ellipse 40% 100% at 50% 0%, rgba(48,171,202,0.05) 0%, transparent 70%);
+  z-index: 2;
+  pointer-events: none;
+  opacity: 0;
+  animation: fadeIn 3s ease 1.5s forwards;
+}
+
+/* Horizontal accent line */
+.accent-line {
+  position: absolute;
+  top: calc(50% - 90px);
+  left: 50%;
+  transform: translateX(-50%);
+  height: 0.5px;
+  width: 0;
+  background: linear-gradient(90deg, transparent, rgba(48,171,202,0.6), transparent);
+  z-index: 4;
+  animation: lineExtend 1.6s cubic-bezier(0.16,1,0.3,1) 0.9s forwards;
+}
+
+/* Floating particles */
+.particle {
+  position: absolute;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 2;
+  animation: particleDrift linear infinite;
+}
+
+/* Hero content */
+.hero-content {
+  position: relative;
+  z-index: 5;
+  text-align: center;
+  padding: 2rem;
+  max-width: 960px;
+  width: 100%;
+}
+
+/* Eyebrow */
+.eyebrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  font-size: 0.65rem;
+  font-weight: 500;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 2.5rem;
+  opacity: 0;
+  transform: translateY(12px);
+  animation: fadeUp 0.9s cubic-bezier(0.16,1,0.3,1) 1.6s forwards;
+}
+.eyebrow::before,
+.eyebrow::after {
+  content: '';
+  width: 24px;
+  height: 0.5px;
+  background: var(--accent);
+  opacity: 0.5;
+}
+
+/* Headline */
+.headline {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: clamp(3.5rem, 9.5vw, 8rem);
+  font-weight: 300;
+  line-height: 0.93;
+  letter-spacing: -0.025em;
+  color: var(--text);
+  margin-bottom: 2.5rem;
+}
+
+.word {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(50px) rotateX(20deg);
+  animation: wordReveal 1.1s cubic-bezier(0.16,1,0.3,1) forwards;
+  transform-origin: bottom center;
+}
+
+.w1 { animation-delay: 2.0s; }
+.w2 { animation-delay: 2.3s; }
+.w3 {
+  animation-delay: 2.6s;
+  font-style: italic;
+  color: var(--text);
+  padding-right: 0.05em;
+}
+
+.word-break { display: block; }
+
+/* Subheadline */
+.sub {
+  font-size: clamp(0.85rem, 1.8vw, 1rem);
+  font-weight: 300;
+  color: var(--text-2);
+  letter-spacing: 0.03em;
+  line-height: 1.8;
+  max-width: 520px;
+  margin: 0 auto 3.5rem;
+  opacity: 0;
+  transform: translateY(16px);
+  animation: fadeUp 1s cubic-bezier(0.16,1,0.3,1) 3.2s forwards;
+}
+
+/* CTAs */
+.ctas {
+  display: flex;
+  gap: 1.25rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  opacity: 0;
+  transform: translateY(16px);
+  animation: fadeUp 1s cubic-bezier(0.16,1,0.3,1) 3.6s forwards;
+}
+
+.btn-primary {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 1rem 2.75rem;
+  background: var(--accent);
+  color: #04040c;
+  border: none;
+  border-radius: 1px;
+  cursor: none;
+  transition: opacity 0.2s, transform 0.2s;
+}
+.btn-primary:hover { opacity: 0.85; transform: translateY(-2px); }
+
+.btn-secondary {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.72rem;
+  font-weight: 400;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 1rem 2.75rem;
+  background: transparent;
+  color: var(--text-2);
+  border: 0.5px solid var(--border);
+  border-radius: 1px;
+  cursor: none;
+  transition: color 0.2s, border-color 0.2s, transform 0.2s;
+}
+.btn-secondary:hover { color: var(--text); border-color: rgba(255,255,255,0.18); transform: translateY(-2px); }
+
+/* Stats strip */
+.stats {
+  display: flex;
+  gap: 3rem;
+  justify-content: center;
+  margin-top: 4rem;
+  opacity: 0;
+  animation: fadeIn 1s ease 4.2s forwards;
+}
+.stat-item { text-align: center; }
+.stat-num {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 2rem;
+  font-weight: 300;
+  color: var(--text);
+  letter-spacing: -0.02em;
+  line-height: 1;
+  margin-bottom: 0.3rem;
+}
+.stat-label {
+  font-size: 0.6rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+.stat-div {
+  width: 0.5px;
+  background: var(--border);
+  align-self: stretch;
+}
+
+/* Scroll indicator */
+.scroll-ind {
+  position: absolute;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  z-index: 5;
+  opacity: 0;
+  animation: fadeIn 1s ease 4.8s forwards;
+}
+.scroll-line {
+  width: 0.5px;
+  height: 36px;
+  background: linear-gradient(180deg, transparent, var(--accent));
+  animation: scrollAnim 2.4s ease-in-out 4.8s infinite;
+}
+.scroll-text {
+  font-size: 0.52rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+
+/* ── Below the fold ── */
+.below {
+  position: relative;
+  z-index: 1;
+  background: var(--bg-2);
+  border-top: 0.5px solid var(--border);
+}
+
+.formation-label {
+  text-align: center;
+  padding: 3.5rem 2rem 0;
+  font-size: 0.6rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+
+.skill-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0;
+  max-width: 100%;
+  margin: 2.5rem 0 0;
+  border-top: 0.5px solid var(--border);
+}
+
+.skill-card {
+  padding: 2.5rem 2rem;
+  border-right: 0.5px solid var(--border);
+  transition: background 0.3s;
+}
+.skill-card:last-child { border-right: none; }
+.skill-card:hover { background: rgba(255,255,255,0.015); }
+
+.sk-num {
+  font-size: 0.58rem;
+  letter-spacing: 0.18em;
+  color: var(--accent);
+  margin-bottom: 0.875rem;
+  text-transform: uppercase;
+}
+.sk-name {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.45rem;
+  font-weight: 400;
+  color: var(--text);
+  margin-bottom: 0.625rem;
+  line-height: 1.2;
+}
+.sk-desc {
+  font-size: 0.7rem;
+  color: var(--text-3);
+  line-height: 1.7;
+  font-weight: 300;
+}
+
+/* UIS component badge */
+.uis-badge {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  font-size: 0.55rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 0.35rem 0.8rem;
+  background: rgba(4,4,12,0.85);
+  border: 0.5px solid var(--border);
+  border-radius: 2px;
+  color: var(--text-3);
+  z-index: 100;
+  backdrop-filter: blur(12px);
+  opacity: 0;
+  animation: fadeIn 0.8s ease 5s forwards;
+}
+.uis-badge em { color: var(--accent); font-style: normal; }
+
+/* ── Keyframes ── */
+@keyframes fadeIn {
+  to { opacity: 1; }
+}
+@keyframes fadeUp {
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes wordReveal {
+  to { opacity: 1; transform: translateY(0) rotateX(0deg); }
+}
+@keyframes lineExtend {
+  to { width: 320px; }
+}
+@keyframes scrollAnim {
+  0%,100% { opacity: 0.3; transform: scaleY(0.8); transform-origin: top; }
+  50%      { opacity: 1;   transform: scaleY(1);   transform-origin: top; }
+}
+@keyframes particleDrift {
+  0%   { transform: translateY(0) translateX(0); opacity: 0; }
+  10%  { opacity: 1; }
+  90%  { opacity: 0.6; }
+  100% { transform: translateY(-80vh) translateX(var(--drift-x, 30px)); opacity: 0; }
+}
+
+@media(max-width: 768px) {
+  .skill-grid { grid-template-columns: 1fr 1fr; }
+  .stats { gap: 2rem; }
+}
+@media(max-width: 480px) {
+  .skill-grid { grid-template-columns: 1fr; }
+  .stats { flex-direction: column; gap: 1.5rem; }
+  .stat-div { display: none; }
+}
+</style>
+</head>
+<body>
+
+<!-- Custom cursor -->
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursor-ring"></div>
+
+<!-- Canvas star field -->
+<canvas id="stars"></canvas>
+
+<!-- UIS badge -->
+<div class="uis-badge">CBC-01 · Tier 3A · <em>Cinematic Hero</em> · Docente</div>
+
+<!-- ── HERO ── -->
+<section class="hero">
+  <div class="vignette"></div>
+  <div class="grain"></div>
+  <div class="shaft"></div>
+  <div class="accent-line"></div>
+
+  <div class="hero-content">
+
+    <div class="eyebrow">Docente · Skill Formation Platform</div>
+
+    <h1 class="headline">
+      <span class="word w1">Master</span>&thinsp;
+      <span class="word w2">what</span>&thinsp;
+      <span class="word w3">matters.</span>
+    </h1>
+
+    <p class="sub">
+      Precision skill formation for the ambitious learner.<br>
+      Every course, every skill, every step — with purpose.
+    </p>
+
+    <div class="ctas">
+      <button class="btn-primary">Begin your formation</button>
+      <button class="btn-secondary">Explore skills</button>
+    </div>
+
+    <div class="stats">
+      <div class="stat-item">
+        <div class="stat-num">2,400+</div>
+        <div class="stat-label">Active learners</div>
+      </div>
+      <div class="stat-div"></div>
+      <div class="stat-item">
+        <div class="stat-num">94%</div>
+        <div class="stat-label">Skill completion</div>
+      </div>
+      <div class="stat-div"></div>
+      <div class="stat-item">
+        <div class="stat-num">18</div>
+        <div class="stat-label">Formation tracks</div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="scroll-ind">
+    <div class="scroll-line"></div>
+    <span class="scroll-text">scroll</span>
+  </div>
+</section>
+
+<!-- ── BELOW FOLD ── -->
+<div class="below">
+  <div class="formation-label">Featured formation tracks</div>
+  <div class="skill-grid">
+    <div class="skill-card">
+      <div class="sk-num">Track 01</div>
+      <div class="sk-name">Signal Intelligence</div>
+      <div class="sk-desc">Read the signals others miss. Decision frameworks for precision operators working at platform scale.</div>
+    </div>
+    <div class="skill-card">
+      <div class="sk-num">Track 02</div>
+      <div class="sk-name">Creative Direction</div>
+      <div class="sk-desc">From brief to executed asset. The complete conversion creation process, governed and traceable.</div>
+    </div>
+    <div class="skill-card">
+      <div class="sk-num">Track 03</div>
+      <div class="sk-name">Platform Mastery</div>
+      <div class="sk-desc">Stardance end-to-end. The intelligence system for the operator who demands precision.</div>
+    </div>
+    <div class="skill-card">
+      <div class="sk-num">Track 04</div>
+      <div class="sk-name">Outcome Architecture</div>
+      <div class="sk-desc">Build systems that compound. The art of deliberate performance design and learning loop mastery.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Custom cursor ──────────────────────────────────────────
+const cur = document.getElementById('cursor');
+const ring = document.getElementById('cursor-ring');
+let mx = 0, my = 0, rx = 0, ry = 0;
+
+document.addEventListener('mousemove', e => {
+  mx = e.clientX; my = e.clientY;
+  cur.style.left = mx + 'px';
+  cur.style.top  = my + 'px';
+});
+
+function animRing() {
+  rx += (mx - rx) * 0.12;
+  ry += (my - ry) * 0.12;
+  ring.style.left = rx + 'px';
+  ring.style.top  = ry + 'px';
+  requestAnimationFrame(animRing);
+}
+animRing();
+
+document.querySelectorAll('button').forEach(b => {
+  b.addEventListener('mouseenter', () => {
+    ring.style.width  = '48px';
+    ring.style.height = '48px';
+    ring.style.borderColor = 'rgba(48,171,202,0.8)';
+  });
+  b.addEventListener('mouseleave', () => {
+    ring.style.width  = '32px';
+    ring.style.height = '32px';
+    ring.style.borderColor = 'rgba(48,171,202,0.4)';
+  });
+});
+
+// ── Star field canvas ──────────────────────────────────────
+const cv = document.getElementById('stars');
+const cx = cv.getContext('2d');
+let W, H, stars = [], scrollY = 0;
+
+function resize() {
+  W = cv.width  = window.innerWidth;
+  H = cv.height = window.innerHeight;
+}
+
+class Star {
+  constructor() { this.reset(true); }
+  reset(init) {
+    this.x  = Math.random() * W;
+    this.y  = init ? Math.random() * H : H + 2;
+    this.r  = Math.random() * 1.4 + 0.2;
+    this.a  = Math.random() * 0.55 + 0.08;
+    this.da = (Math.random() - 0.5) * 0.004;
+    this.vx = (Math.random() - 0.5) * 0.06;
+    this.vy = -(Math.random() * 0.06 + 0.01);
+    this.hue = Math.random() > 0.8 ? 190 : 230;
+    this.sat = Math.random() > 0.85 ? 30 : 10;
+  }
+  update() {
+    this.x += this.vx;
+    this.y += this.vy;
+    this.a += this.da;
+    if (this.a < 0.04) this.da =  Math.abs(this.da);
+    if (this.a > 0.65) this.da = -Math.abs(this.da);
+    if (this.y < -4 || this.x < -4 || this.x > W + 4) this.reset(false);
+  }
+  draw(parallax) {
+    cx.beginPath();
+    cx.arc(this.x, this.y + parallax, this.r, 0, Math.PI * 2);
+    cx.fillStyle = `hsla(${this.hue},${this.sat}%,92%,${this.a})`;
+    cx.fill();
+  }
+}
+
+function initStars() {
+  const n = Math.floor((W * H) / 5500);
+  stars = Array.from({length: n}, () => new Star());
+}
+
+function draw() {
+  cx.clearRect(0, 0, W, H);
+  const p = scrollY * 0.18;
+  stars.forEach(s => { s.update(); s.draw(p * 0.25); });
+  requestAnimationFrame(draw);
+}
+
+// Floating particles
+function spawnParticles() {
+  const hero = document.querySelector('.hero');
+  for (let i = 0; i < 14; i++) {
+    const p = document.createElement('div');
+    p.className = 'particle';
+    const size = Math.random() * 2.5 + 0.8;
+    const x = Math.random() * 100;
+    const dur = Math.random() * 18 + 12;
+    const delay = Math.random() * 8;
+    const drift = (Math.random() - 0.5) * 120;
+    p.style.cssText = `
+      width:${size}px; height:${size}px;
+      left:${x}%;
+      bottom:${Math.random() * 20}%;
+      background: rgba(${Math.random() > 0.6 ? '48,171,202' : '200,168,74'}, ${Math.random() * 0.4 + 0.1});
+      --drift-x: ${drift}px;
+      animation-duration: ${dur}s;
+      animation-delay: ${delay}s;
+    `;
+    hero.appendChild(p);
+  }
+}
+
+window.addEventListener('resize', () => { resize(); initStars(); });
+window.addEventListener('scroll', () => { scrollY = window.scrollY; });
+
+resize(); initStars(); draw(); spawnParticles();
+</script>
+
+</body>
+</html>

@@ -1,1 +1,1284 @@
-<!-- uat-relay.html — placeholder. Replace with file from sd-ui-canon-v1.0.0.zip -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SD — Unified Experience Contract v1.2 · Theme UAT</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@300;400;500;600&family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@300;400;500&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+<style>
+/* ── Reset ─────────────────────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+/* ── Design tokens — populated by palette system ─────────── */
+:root {
+  --bg:           #07070d;
+  --surface:      #0d0d16;
+  --elevated:     #161923;
+  --border:       rgba(255,255,255,0.07);
+  --text:         #e4e2db;
+  --text-2:       #9b9890;
+  --text-3:       #45433f;
+  --accent:       #E8751A;
+  --accent-hover: #D96310;
+  --accent-dim:   rgba(232,117,26,0.15);
+  --secondary:    #0891B2;
+  --signals:      #378add;
+  --canon:        #a78bfa;
+  --systems:      #E8751A;
+  --learning:     #1d9e75;
+  --moats:        #c8973a;
+  --signal-pass:    #059669;
+  --signal-caution: #D97706;
+  --signal-fail:    #DC2626;
+  --signal-info:    #2563EB;
+  --font-display: "Syne";
+  --font-body:    "IBM Plex Mono";
+  --r-sm: 4px; --r-md: 8px; --r-lg: 12px; --r-xl: 16px;
+}
+
+/* ── Base ────────────────────────────────────────────────── */
+html { font-size: 14px; }
+body {
+  font-family: var(--font-body), "IBM Plex Mono", ui-monospace, monospace;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+/* Grain */
+body::before {
+  content:''; position:fixed; inset:0;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events:none; z-index:0; opacity:0.3;
+}
+
+.page { position:relative; z-index:1; max-width:1100px; margin:0 auto; padding:0 2rem 6rem; }
+
+/* ── Animations ──────────────────────────────────────────── */
+@keyframes fadeUp {
+  from{opacity:0;transform:translateY(14px)}
+  to{opacity:1;transform:translateY(0)}
+}
+@keyframes pulse { 0%,100%{opacity:.4} 50%{opacity:1} }
+.reveal{opacity:0;animation:fadeUp .5s cubic-bezier(.22,1,.36,1) forwards}
+.d1{animation-delay:.05s}.d2{animation-delay:.12s}.d3{animation-delay:.20s}
+.d4{animation-delay:.28s}.d5{animation-delay:.36s}.d6{animation-delay:.44s}
+.d7{animation-delay:.52s}.d8{animation-delay:.60s}
+
+/* ── Header ──────────────────────────────────────────────── */
+.header {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:1.5rem 0; border-bottom:.5px solid var(--border);
+  margin-bottom:0; flex-wrap:wrap; gap:.75rem;
+}
+.header-left { display:flex; align-items:baseline; gap:.75rem; }
+.header-name { font-size:.8rem; font-weight:600; letter-spacing:.14em; text-transform:uppercase; color:var(--text); }
+.header-sub  { font-size:.7rem; color:var(--text-3); letter-spacing:.04em; }
+.header-right { display:flex; align-items:center; gap:.6rem; flex-wrap:wrap; }
+.hbadge {
+  display:inline-flex; align-items:center; gap:.375rem;
+  padding:.25rem .625rem; border:.5px solid var(--border);
+  border-radius:var(--r-sm); font-size:.62rem; letter-spacing:.08em;
+  text-transform:uppercase; color:var(--text-2);
+}
+.hbadge.live { border-color:rgba(5,150,105,0.4); color:var(--signal-pass); background:rgba(5,150,105,0.07); }
+.hdot { width:5px; height:5px; border-radius:50%; flex-shrink:0; }
+.hdot.live { background:var(--signal-pass); animation:pulse 2s ease-in-out infinite; }
+
+/* ── Palette Switcher ────────────────────────────────────── */
+.palette-bar {
+  display:flex; align-items:center; gap:0;
+  border:.5px solid var(--border); border-radius:var(--r-lg);
+  margin:1.5rem 0; overflow:hidden; background:var(--surface);
+}
+.palette-section {
+  flex:1; padding:.875rem 1.1rem; border-right:.5px solid var(--border);
+}
+.palette-section:last-child { border-right:none; }
+.ps-label { font-size:.58rem; letter-spacing:.14em; text-transform:uppercase; color:var(--text-3); margin-bottom:.5rem; }
+.ps-btns { display:flex; gap:.35rem; flex-wrap:wrap; }
+.ps-btn {
+  font-size:.62rem; letter-spacing:.08em; text-transform:uppercase;
+  padding:.25rem .625rem; border-radius:var(--r-sm); border:.5px solid var(--border);
+  color:var(--text-2); background:transparent; cursor:pointer;
+  transition:all .15s ease; font-family:inherit;
+}
+.ps-btn:hover { color:var(--text); border-color:var(--text-2); }
+.ps-btn.active { color:var(--accent); border-color:var(--accent); background:var(--accent-dim); }
+.ps-btn.mode-btn.active { color:var(--secondary); border-color:var(--secondary); background:rgba(8,145,178,0.10); }
+
+/* Palette preview strip */
+.palette-preview {
+  display:flex; align-items:center; gap:.5rem;
+  padding:.5rem 1.1rem; background:var(--elevated);
+  border-top:.5px solid var(--border);
+  flex-wrap:wrap;
+}
+.pp-label { font-size:.58rem; letter-spacing:.12em; text-transform:uppercase; color:var(--text-3); }
+.pp-swatch { display:flex; gap:.3rem; align-items:center; }
+.pp-dot { width:12px; height:12px; border-radius:50%; flex-shrink:0; }
+.pp-name { font-size:.6rem; color:var(--text-3); }
+.pp-sep { color:var(--border); font-size:.7rem; }
+.pp-font-label { font-size:.6rem; color:var(--text-3); margin-left:.5rem; }
+
+/* ── Section labels ──────────────────────────────────────── */
+.sec-eyebrow {
+  font-size:.58rem; letter-spacing:.18em; text-transform:uppercase;
+  color:var(--text-3); margin-bottom:.5rem; display:flex; align-items:center; gap:.75rem;
+}
+.sec-eyebrow::after { content:''; flex:1; height:.5px; background:var(--border); }
+.sec-headline {
+  font-family:var(--font-display),"DM Serif Display",Georgia,serif;
+  font-size:1.6rem; line-height:1.15; color:var(--text);
+  margin-bottom:.375rem; letter-spacing:-.02em;
+}
+.sec-headline em { font-style:italic; color:var(--accent); }
+.sec-sub { font-size:.72rem; color:var(--text-2); line-height:1.7; margin-bottom:1.5rem; max-width:700px; }
+
+/* ── Contract layer cards ────────────────────────────────── */
+.contract-grid { display:grid; grid-template-columns:1fr 1fr; gap:.75rem; margin-bottom:1.75rem; }
+
+.contract-card {
+  border:.5px solid var(--border); border-radius:var(--r-lg);
+  padding:1.375rem; background:var(--surface);
+  position:relative; overflow:hidden;
+  transition:border-color .2s, background .2s;
+}
+.contract-card::before {
+  content:''; position:absolute; top:0; left:0; right:0; height:2px;
+  opacity:0; transition:opacity .2s;
+}
+.contract-card:hover { border-color:var(--accent-dim); }
+.contract-card:hover::before { opacity:1; background:linear-gradient(90deg,transparent,var(--accent),transparent); }
+
+.cc-head { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:.875rem; gap:.5rem; }
+.cc-id-wrap { display:flex; align-items:center; gap:.5rem; }
+.cc-id { font-size:.62rem; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); font-weight:600; }
+.cc-badge {
+  font-size:.55rem; letter-spacing:.10em; text-transform:uppercase;
+  padding:.15rem .4rem; border-radius:var(--r-sm); border:.5px solid;
+}
+.cc-badge.required { color:var(--signal-fail); border-color:rgba(220,38,38,0.35); background:rgba(220,38,38,0.08); }
+.cc-badge.partial   { color:var(--signal-caution); border-color:rgba(217,119,6,0.35); background:rgba(217,119,6,0.08); }
+.cc-badge.complete  { color:var(--signal-pass); border-color:rgba(5,150,105,0.35); background:rgba(5,150,105,0.08); }
+
+.cc-title { font-family:var(--font-display),"DM Serif Display",Georgia,serif; font-size:1rem; color:var(--text); margin-bottom:.2rem; line-height:1.2; }
+.cc-abbr  { font-size:.62rem; color:var(--text-3); margin-bottom:.75rem; }
+.cc-desc  { font-size:.68rem; color:var(--text-2); line-height:1.65; margin-bottom:.75rem; }
+.cc-rules { display:flex; flex-direction:column; gap:.3rem; }
+.cc-rule  { font-size:.63rem; color:var(--text-2); display:flex; align-items:flex-start; gap:.4rem; line-height:1.45; }
+.cc-rule::before { content:'→'; color:var(--accent); flex-shrink:0; font-size:.65rem; margin-top:.05rem; }
+.cc-div   { height:.5px; background:var(--border); margin:.75rem 0; }
+.cc-systems { display:flex; flex-wrap:wrap; gap:.3rem; }
+
+/* ── IMS state machine ───────────────────────────────────── */
+.ims-states {
+  display:flex; align-items:center; gap:0; flex-wrap:wrap;
+  margin:.5rem 0 .75rem; padding:.75rem 1rem;
+  background:var(--elevated); border-radius:var(--r-md);
+  border:.5px solid var(--border);
+}
+.ims-state { font-size:.62rem; color:var(--text-2); padding:.2rem .4rem; border-radius:var(--r-sm); }
+.ims-state.start { color:var(--text-3); }
+.ims-state.terminal { color:var(--signal-pass); font-weight:600; }
+.ims-state.fail    { color:var(--signal-fail); }
+.ims-arrow { font-size:.65rem; color:var(--text-3); margin:0 .2rem; }
+
+/* ── Five visibility requirements ────────────────────────── */
+.visibility-strip {
+  border:.5px solid var(--border); border-radius:var(--r-xl);
+  margin-bottom:1.75rem; overflow:hidden; background:var(--surface);
+}
+.vs-header {
+  padding:1.25rem 1.5rem; border-bottom:.5px solid var(--border);
+  display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:.5rem;
+}
+.vs-title { font-family:var(--font-display),"DM Serif Display",Georgia,serif; font-size:1rem; color:var(--text); }
+.vs-subtitle { font-size:.65rem; color:var(--text-3); font-style:italic; }
+.vs-grid { display:grid; grid-template-columns:repeat(5,1fr); }
+.vs-item { padding:.875rem 1rem; border-right:.5px solid var(--border); }
+.vs-item:last-child { border-right:none; }
+.vs-num { font-size:.6rem; letter-spacing:.14em; color:var(--accent); margin-bottom:.25rem; text-transform:uppercase; }
+.vs-label { font-size:.68rem; font-weight:600; color:var(--text); margin-bottom:.3rem; line-height:1.3; }
+.vs-desc { font-size:.6rem; color:var(--text-3); line-height:1.5; }
+
+/* ── Design doctrine card ────────────────────────────────── */
+.doctrine-card {
+  border:.5px solid var(--accent-dim); border-radius:var(--r-xl);
+  padding:1.75rem 2rem; margin-bottom:1.75rem;
+  background:linear-gradient(135deg, var(--accent-dim) 0%, transparent 60%);
+  position:relative; overflow:hidden;
+}
+.doctrine-card::before {
+  content:''; position:absolute; top:0; left:0; right:0; height:1px;
+  background:linear-gradient(90deg,transparent,var(--accent),transparent); opacity:.5;
+}
+.dc-eyebrow { font-size:.6rem; letter-spacing:.18em; text-transform:uppercase; color:var(--accent); margin-bottom:.75rem; }
+.dc-headline { font-family:var(--font-display),"DM Serif Display",Georgia,serif; font-size:1.5rem; color:var(--text); margin-bottom:.375rem; }
+.dc-sub { font-size:.7rem; color:var(--text-2); margin-bottom:1.25rem; font-style:italic; }
+.dc-sequence { display:grid; grid-template-columns:1fr 24px 1fr 24px 1fr; align-items:center; gap:0; }
+.dc-step { padding:1rem 1.125rem; border:.5px solid var(--border); border-radius:var(--r-lg); background:var(--elevated); }
+.dc-step-n { font-size:.58rem; letter-spacing:.14em; text-transform:uppercase; color:var(--text-3); margin-bottom:.25rem; }
+.dc-step-t { font-family:var(--font-display),"DM Serif Display",Georgia,serif; font-size:.95rem; color:var(--accent); margin-bottom:.25rem; }
+.dc-step-d { font-size:.63rem; color:var(--text-2); line-height:1.5; }
+.dc-arrow   { text-align:center; color:var(--text-3); font-size:.875rem; }
+
+/* ── Gap register ────────────────────────────────────────── */
+.gap-grid { display:grid; gap:.6rem; margin-bottom:1.75rem; }
+.gap-item {
+  border:.5px solid var(--border); border-radius:var(--r-lg);
+  padding:1rem 1.125rem; display:grid; grid-template-columns:auto 1fr;
+  gap:.875rem; align-items:start; background:var(--surface);
+}
+.gap-item.t1 { border-color:rgba(220,38,38,0.25); background:rgba(220,38,38,0.03); }
+.gap-item.t2 { border-color:rgba(217,119,6,0.25); background:rgba(217,119,6,0.03); }
+.gap-tag { font-size:.55rem; letter-spacing:.12em; text-transform:uppercase; padding:.2rem .45rem; border-radius:var(--r-sm); border:.5px solid; white-space:nowrap; margin-top:.1rem; }
+.gap-tag.block { color:var(--signal-fail); border-color:rgba(220,38,38,0.35); background:rgba(220,38,38,0.08); }
+.gap-tag.flag  { color:var(--signal-caution); border-color:rgba(217,119,6,0.35); background:rgba(217,119,6,0.08); }
+.gap-title { font-size:.75rem; font-weight:600; color:var(--text); margin-bottom:.3rem; }
+.gap-desc  { font-size:.65rem; color:var(--text-2); line-height:1.6; }
+.gap-fix   { font-size:.62rem; color:var(--text-3); background:var(--elevated); padding:.25rem .5rem; border-radius:var(--r-sm); display:inline-block; margin-top:.375rem; border:.5px solid var(--border); }
+
+/* ── System compliance matrix ────────────────────────────── */
+.matrix-table { width:100%; border-collapse:collapse; margin-bottom:1.75rem; font-size:.63rem; }
+.matrix-table th { text-align:left; padding:.45rem .6rem; border-bottom:.5px solid var(--border); color:var(--text-3); font-size:.58rem; letter-spacing:.1em; text-transform:uppercase; font-weight:400; }
+.matrix-table td { padding:.55rem .6rem; border-bottom:.5px solid var(--border); color:var(--text-2); vertical-align:top; }
+.matrix-table tr:last-child td { border-bottom:none; }
+.matrix-table td:first-child { color:var(--text); font-weight:600; white-space:nowrap; }
+.cell-strong { color:var(--signal-pass) !important; }
+.cell-partial { color:var(--signal-caution) !important; }
+.cell-weak    { color:var(--signal-fail) !important; }
+.cell-na      { color:var(--text-3) !important; }
+
+/* ── Sys chips ───────────────────────────────────────────── */
+.sys-chip { font-size:.58rem; letter-spacing:.06em; padding:.18rem .45rem; border-radius:var(--r-sm); border:.5px solid var(--border); color:var(--text-3); text-transform:uppercase; }
+
+/* ── Enforcement ladder ──────────────────────────────────── */
+.enforcement-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:.6rem; margin-bottom:1.75rem; }
+.ef-card { background:var(--surface); border:.5px solid var(--border); border-radius:var(--r-lg); padding:.875rem 1rem; position:relative; overflow:hidden; }
+.ef-card::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; }
+.ef-card.l1::before{background:var(--text-3)}
+.ef-card.l2::before{background:var(--signal-caution)}
+.ef-card.l3::before{background:var(--accent)}
+.ef-card.l4::before{background:var(--signal-pass)}
+.ef-card.l5::before{background:var(--secondary)}
+.ef-layer { font-size:.58rem; letter-spacing:.14em; text-transform:uppercase; color:var(--text-3); margin-bottom:.25rem; }
+.ef-name  { font-size:.72rem; font-weight:600; color:var(--text); margin-bottom:.35rem; line-height:1.3; }
+.ef-desc  { font-size:.62rem; color:var(--text-2); line-height:1.5; }
+
+/* ── Footer ──────────────────────────────────────────────── */
+.doc-footer {
+  display:flex; justify-content:space-between; align-items:center;
+  padding-top:1.5rem; margin-top:2rem; border-top:.5px solid var(--border);
+  font-size:.62rem; color:var(--text-3); flex-wrap:wrap; gap:.5rem;
+}
+.footer-v { color:var(--accent); }
+
+@media(max-width:768px){
+  .contract-grid{grid-template-columns:1fr}
+  .dc-sequence{grid-template-columns:1fr}
+  .dc-arrow{display:none}
+  .vs-grid{grid-template-columns:1fr 1fr}
+  .enforcement-grid{grid-template-columns:1fr 1fr}
+  .palette-bar{flex-direction:column}
+  .palette-section{border-right:none;border-bottom:.5px solid var(--border)}
+}
+
+/* ── UAT Feedback System ─────────────────────────────── */
+.fb-trigger {
+  position:fixed; bottom:1.5rem; right:1.5rem; z-index:100;
+  display:flex; align-items:center; gap:.5rem;
+  padding:.55rem 1rem; background:var(--accent); color:#fff;
+  border:none; border-radius:var(--r-lg); cursor:pointer;
+  font-family:inherit; font-size:.68rem; letter-spacing:.06em;
+  font-weight:600; text-transform:uppercase;
+  box-shadow:0 4px 20px rgba(0,0,0,.4);
+  transition:opacity .15s, transform .15s;
+}
+.fb-trigger:hover { opacity:.9; transform:translateY(-1px); }
+.fb-trigger .fb-count {
+  background:rgba(0,0,0,.25); border-radius:4px;
+  padding:.1rem .4rem; font-size:.6rem; min-width:18px; text-align:center;
+}
+
+.fb-drawer {
+  position:fixed; bottom:0; right:0; z-index:99;
+  width:380px; max-height:80vh;
+  background:var(--surface); border:.5px solid var(--border);
+  border-radius:var(--r-xl) var(--r-xl) 0 0;
+  box-shadow:0 -8px 40px rgba(0,0,0,.5);
+  display:flex; flex-direction:column;
+  transform:translateY(100%); transition:transform .3s cubic-bezier(.22,1,.36,1);
+  overflow:hidden;
+}
+.fb-drawer.open { transform:translateY(0); }
+
+.fb-drawer-header {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:1rem 1.25rem; border-bottom:.5px solid var(--border);
+  flex-shrink:0;
+}
+.fb-drawer-title { font-size:.78rem; font-weight:600; color:var(--text); letter-spacing:.04em; }
+.fb-drawer-sub   { font-size:.6rem; color:var(--text-3); margin-top:.1rem; }
+.fb-close {
+  background:none; border:.5px solid var(--border); color:var(--text-3);
+  border-radius:var(--r-sm); padding:.3rem .55rem; cursor:pointer;
+  font-size:.75rem; font-family:inherit; transition:color .15s;
+}
+.fb-close:hover { color:var(--text); }
+
+.fb-drawer-body { padding:1.25rem; overflow-y:auto; flex:1; }
+
+.fb-context {
+  display:flex; gap:.4rem; flex-wrap:wrap; margin-bottom:1rem;
+}
+.fb-ctx-pill {
+  font-size:.58rem; letter-spacing:.1em; text-transform:uppercase;
+  padding:.2rem .55rem; border:.5px solid var(--border); border-radius:var(--r-sm);
+  color:var(--text-3); background:var(--elevated);
+}
+.fb-ctx-pill.active { color:var(--accent); border-color:var(--accent); background:var(--accent-dim); }
+
+.fb-field-label { font-size:.6rem; letter-spacing:.14em; text-transform:uppercase; color:var(--text-3); margin-bottom:.4rem; display:block; }
+
+.fb-rating { display:flex; gap:.35rem; margin-bottom:1rem; }
+.fb-star {
+  width:32px; height:32px; border-radius:var(--r-sm);
+  border:.5px solid var(--border); background:var(--elevated);
+  cursor:pointer; font-size:.9rem; display:flex; align-items:center; justify-content:center;
+  transition:all .12s; color:var(--text-3);
+  -webkit-user-select:none; user-select:none;
+}
+.fb-star:hover, .fb-star.selected { background:var(--accent-dim); border-color:var(--accent); color:var(--accent); }
+
+.fb-section-label { font-size:.58rem; letter-spacing:.14em; text-transform:uppercase; color:var(--text-3); margin-bottom:.5rem; }
+
+.fb-checks { display:flex; flex-direction:column; gap:.4rem; margin-bottom:1rem; }
+.fb-check {
+  display:flex; align-items:center; gap:.625rem;
+  padding:.5rem .75rem; border:.5px solid var(--border);
+  border-radius:var(--r-md); cursor:pointer; background:var(--elevated);
+  transition:border-color .12s, background .12s;
+  -webkit-user-select:none; user-select:none;
+}
+.fb-check:hover { border-color:var(--border); background:var(--elevated); }
+.fb-check.checked { border-color:var(--accent); background:var(--accent-dim); }
+.fb-check-box {
+  width:14px; height:14px; border:.5px solid var(--text-3); border-radius:3px;
+  flex-shrink:0; display:flex; align-items:center; justify-content:center;
+  font-size:.65rem; color:transparent; transition:all .12s;
+}
+.fb-check.checked .fb-check-box { background:var(--accent); border-color:var(--accent); color:#fff; }
+.fb-check-label { font-size:.68rem; color:var(--text-2); line-height:1.4; }
+.fb-check.checked .fb-check-label { color:var(--text); }
+
+.fb-textarea {
+  width:100%; background:var(--elevated); color:var(--text);
+  border:.5px solid var(--border); border-radius:var(--r-md);
+  padding:.625rem .75rem; font-family:inherit; font-size:.7rem;
+  outline:none; resize:vertical; min-height:72px; line-height:1.6;
+  transition:border-color .15s; margin-bottom:1rem;
+}
+.fb-textarea:focus { border-color:var(--accent); }
+.fb-textarea::placeholder { color:var(--text-3); }
+
+.fb-submit {
+  width:100%; padding:.625rem 1rem; background:var(--accent); color:#fff;
+  border:none; border-radius:var(--r-md); cursor:pointer;
+  font-family:inherit; font-size:.72rem; font-weight:600;
+  letter-spacing:.06em; text-transform:uppercase; transition:opacity .15s;
+}
+.fb-submit:hover { opacity:.88; }
+.fb-submit:disabled { opacity:.4; cursor:not-allowed; }
+
+.fb-success {
+  display:none; text-align:center; padding:2rem 1rem;
+}
+.fb-success.show { display:block; }
+.fb-success-icon { font-size:2rem; margin-bottom:.75rem; }
+.fb-success-msg  { font-size:.75rem; color:var(--text-2); line-height:1.6; }
+.fb-success-sub  { font-size:.65rem; color:var(--text-3); margin-top:.5rem; }
+
+/* Log panel */
+.fb-log { border-top:.5px solid var(--border); padding:1rem 1.25rem; flex-shrink:0; }
+.fb-log-label { font-size:.55rem; letter-spacing:.16em; text-transform:uppercase; color:var(--text-3); margin-bottom:.5rem; display:flex; align-items:center; justify-content:space-between; }
+.fb-log-clear { font-size:.58rem; color:var(--text-3); background:none; border:none; cursor:pointer; font-family:inherit; text-transform:uppercase; letter-spacing:.08em; }
+.fb-log-clear:hover { color:var(--signal-fail); }
+.fb-entries { display:flex; flex-direction:column; gap:.4rem; max-height:140px; overflow-y:auto; }
+.fb-entry {
+  background:var(--elevated); border:.5px solid var(--border);
+  border-radius:var(--r-md); padding:.5rem .75rem;
+  display:grid; grid-template-columns:1fr auto; gap:.5rem; align-items:start;
+}
+.fb-entry-meta { font-size:.58rem; color:var(--text-3); white-space:nowrap; }
+.fb-entry-theme { font-size:.62rem; color:var(--accent); font-weight:600; }
+.fb-entry-rating { font-size:.65rem; color:var(--text-3); }
+.fb-entry-note  { font-size:.62rem; color:var(--text-2); line-height:1.45; margin-top:.2rem; grid-column:1/-1; }
+.fb-empty { font-size:.65rem; color:var(--text-3); font-style:italic; text-align:center; padding:.5rem; }
+
+/* ── Tooltip system ─────────────────────────────────── */
+.ps-btn[data-tooltip] { position: relative; }
+.ps-btn[data-tooltip]::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 0;
+  right: auto;
+  transform: none;
+  background: var(--elevated, #161923);
+  color: var(--text, #e4e2db);
+  border: 0.5px solid var(--border, rgba(255,255,255,0.10));
+  border-radius: 6px;
+  padding: 5px 10px;
+  font-size: 11px;
+  line-height: 1.4;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  z-index: 100;
+  text-align: center;
+  font-family: "IBM Plex Mono", monospace;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.ps-btn[data-tooltip]:hover::after { opacity: 1; }
+
+/* ── Theme button hover colour preview ──────────────── */
+.ps-btn[data-palette="vega"]:hover   { color:#30ABCA; border-color:#30ABCA; }
+.ps-btn[data-palette="nova"]:hover   { color:#E8751A; border-color:#E8751A; }
+.ps-btn[data-palette="hydra"]:hover  { color:#C8B89A; border-color:#C8B89A; }
+</style>
+</head>
+<body>
+<div class="page">
+
+<!-- Header -->
+<header class="header reveal d1">
+  <div class="header-left">
+    <div class="header-name">SD Unified Experience Contract</div>
+    <div class="header-sub">v1.2 · Vega · Nova · Hydra · Dark · Light · Vibe · Final UAT</div>
+  </div>
+  <div class="header-right">
+    <div class="hbadge">2026-03-24</div>
+    <div class="hbadge">7 contract layers</div>
+    <div class="hbadge">3 themes × 3 modes</div>
+    <div class="hbadge live"><span class="hdot live"></span>UAT reference</div>
+  </div>
+</header>
+
+<!-- Palette Switcher -->
+<div class="palette-bar reveal d1" id="palette-bar">
+  <div class="palette-section">
+    <div class="ps-label">Theme</div>
+    <div class="ps-btns" style="position:relative">
+      <button class="ps-btn active" data-palette="vega" onclick="handlePalette(this)" data-tooltip="Fifth brightest star in the night sky">Vega</button>
+      <button class="ps-btn" data-palette="nova" onclick="handlePalette(this)" data-tooltip="A stellar explosion from a white dwarf star">Nova</button>
+      <button class="ps-btn" data-palette="hydra" onclick="handlePalette(this)" data-tooltip="The outermost moon of Pluto">Hydra</button>
+    </div>
+  </div>
+  <div class="palette-section">
+    <div class="ps-label">Mode</div>
+    <div class="ps-btns" style="position:relative">
+      <button class="ps-btn mode-btn" data-mode="dark" onclick="handleMode(this)" data-tooltip="Night sky · pure signal">Dark</button>
+      <button class="ps-btn mode-btn" data-mode="light" onclick="handleMode(this)" data-tooltip="Full spectrum · nothing hidden">Light</button>
+      <button class="ps-btn mode-btn active" data-mode="classic" onclick="handleMode(this)" data-tooltip="Amber glow · ideas first">Vibe</button>
+    </div>
+  </div>
+  <div class="palette-section" style="flex:2">
+    <div class="ps-label">Active palette</div>
+    <div class="pp-swatch" id="palette-preview">
+      <!-- populated by JS -->
+    </div>
+  </div>
+</div>
+
+<!-- Contract overview -->
+<section style="margin:2rem 0 1.5rem" class="reveal d2">
+  <div class="sec-eyebrow">SD Unified Experience Contract · v1.2</div>
+  <div class="sec-headline">The contract every surface<br>must <em>conform to</em></div>
+  <div class="sec-sub">The UXC governs how every surface in the Stardance platform looks, feels, and behaves. It is the document UAT tests against. Without it, there is no canonical definition of done. With it, every surface is accountable to the same seven contract layers, the same Design Doctrine, and the same five visibility requirements.</div>
+</section>
+
+<!-- Five Visibility Requirements -->
+<div class="visibility-strip reveal d2">
+  <div class="vs-header">
+    <div>
+      <div class="vs-title">The Five Visibility Requirements</div>
+      <div class="vs-subtitle">Every operator-facing surface must expose all five. If any answer is invisible, the surface fails the UXC.</div>
+    </div>
+    <span class="sys-chip" style="color:var(--accent);border-color:var(--accent-dim)">C0 · The Human Principle</span>
+  </div>
+  <div class="vs-grid">
+    <div class="vs-item">
+      <div class="vs-num">01</div>
+      <div class="vs-label">What signals were used</div>
+      <div class="vs-desc">Which data inputs drove this output. Source and recency visible.</div>
+    </div>
+    <div class="vs-item">
+      <div class="vs-num">02</div>
+      <div class="vs-label">What canon was applied</div>
+      <div class="vs-desc">Which Canon assets governed the decision. HCTS version, PLA version.</div>
+    </div>
+    <div class="vs-item">
+      <div class="vs-num">03</div>
+      <div class="vs-label">What decision was made</div>
+      <div class="vs-desc">The verdict. PLA band. State. Not implied — explicit.</div>
+    </div>
+    <div class="vs-item">
+      <div class="vs-num">04</div>
+      <div class="vs-label">What confidence exists</div>
+      <div class="vs-desc">Evidence quality score. FLAG-B01. Band. Cap acknowledged.</div>
+    </div>
+    <div class="vs-item" style="border-right:none">
+      <div class="vs-num">05</div>
+      <div class="vs-label">What will be learned</div>
+      <div class="vs-desc">What outcome signal this execution will generate for EDGE.</div>
+    </div>
+  </div>
+</div>
+
+<!-- Design Doctrine -->
+<div class="doctrine-card reveal d3">
+  <div class="dc-eyebrow">C4 — The Design Doctrine · Governing all surfaces</div>
+  <div class="dc-headline">Clarity → Flow → Delight</div>
+  <div class="dc-sub">Every surface the platform builds is subordinate to this sequence. Not aesthetic preference — sequenced execution doctrine.</div>
+  <div class="dc-sequence">
+    <div class="dc-step">
+      <div class="dc-step-n">First</div>
+      <div class="dc-step-t">Clarity</div>
+      <div class="dc-step-d">The message must be immediately legible before any other quality matters. If the user cannot understand what they are looking at in three seconds, the surface has failed the first gate.</div>
+    </div>
+    <div class="dc-arrow">→</div>
+    <div class="dc-step">
+      <div class="dc-step-n">Second</div>
+      <div class="dc-step-t">Flow</div>
+      <div class="dc-step-d">Friction removed from the path to action. Every interaction decision is measured against whether it accelerates or impedes the operator's intended action.</div>
+    </div>
+    <div class="dc-arrow">→</div>
+    <div class="dc-step">
+      <div class="dc-step-n">Third</div>
+      <div class="dc-step-t">Delight</div>
+      <div class="dc-step-d">Only once clarity and flow are achieved does emotional engagement compound conversion. Delight that exists without clarity or flow is decoration, not experience.</div>
+    </div>
+  </div>
+</div>
+
+<!-- IMS State Machine -->
+<section style="margin:0 0 1.5rem" class="reveal d3">
+  <div class="sec-eyebrow">IMS — Interaction Model Standard</div>
+</section>
+
+<!-- Contract Layers grid -->
+<div class="contract-grid reveal d4">
+
+  <!-- IMS -->
+  <div class="contract-card">
+    <div class="cc-head">
+      <div class="cc-id-wrap"><div class="cc-id">IMS</div><span class="cc-badge required">Required</span></div>
+    </div>
+    <div class="cc-title">Interaction Model Standard</div>
+    <div class="cc-abbr">Canonical execution state machine · application-layer flows only</div>
+    <div class="cc-desc">Defines the single canonical execution model for operator-facing and LLM-driven flows. Eliminates behavioral drift by ensuring every system reports execution state in the same vocabulary.</div>
+    <div class="ims-states">
+      <span class="ims-state start">idle</span>
+      <span class="ims-arrow">→</span>
+      <span class="ims-state">validating</span>
+      <span class="ims-arrow">→</span>
+      <span class="ims-state">processing</span>
+      <span class="ims-arrow">→</span>
+      <span class="ims-state terminal">complete</span>
+      <span class="ims-arrow">·</span>
+      <span class="ims-state" style="color:var(--signal-caution)">partial_complete</span>
+      <span class="ims-arrow">·</span>
+      <span class="ims-state fail">failed</span>
+    </div>
+    <div class="cc-rules">
+      <div class="cc-rule">Scope: operator_initiated, LLM_driven, surface_level workflows. Does NOT replace FCS subsystem states (active/paused/degraded/blocked) or domain states (CIF ReviewState, CORTEX governance)</div>
+      <div class="cc-rule">Every state must expose: state · confidence · validation_status · next_action</div>
+      <div class="cc-rule">Invalid transition → Block · Missing state → Block · Missing confidence → Block</div>
+    </div>
+    <div class="cc-div"></div>
+    <div class="cc-systems"><span class="sys-chip">CIF</span><span class="sys-chip">CORTEX</span><span class="sys-chip">VISTA</span><span class="sys-chip">BASE</span></div>
+  </div>
+
+  <!-- LPC -->
+  <div class="contract-card">
+    <div class="cc-head">
+      <div class="cc-id-wrap"><div class="cc-id">LPC</div><span class="cc-badge required">Required</span></div>
+    </div>
+    <div class="cc-title">LLM Behavior Contract</div>
+    <div class="cc-abbr">Canonical output structure · prompt governance · structure enforcement</div>
+    <div class="cc-desc">Governs how LLM outputs are structured for operator-facing surfaces. Prevents LLM behavior drift by requiring canonical three-part output structure on all new builds. Existing outputs under grace-period migration.</div>
+    <div class="cc-rules">
+      <div class="cc-rule">All new LLM outputs must structure: what_happened · why_it_matters · what_to_do_next</div>
+      <div class="cc-rule">Existing outputs (CORTEX explanation, BSA/NEXUS): Flag tier during grace period. Block only after migration deadline.</div>
+      <div class="cc-rule">All LLM calls must route through stardance-llm-service. Direct Anthropic API calls are a Block violation.</div>
+      <div class="cc-rule">Prompts must be registered in the LLM service prompt registry before use</div>
+    </div>
+    <div class="cc-div"></div>
+    <div class="cc-systems"><span class="sys-chip">CORTEX</span><span class="sys-chip">BSA</span><span class="sys-chip">CIF</span><span class="sys-chip">ATLAS</span></div>
+  </div>
+
+  <!-- LIC -->
+  <div class="contract-card">
+    <div class="cc-head">
+      <div class="cc-id-wrap"><div class="cc-id">LIC</div><span class="cc-badge partial">Partial</span></div>
+    </div>
+    <div class="cc-title">LLM Integration Contract</div>
+    <div class="cc-abbr">Invocation rules · integration boundaries · calling system declaration</div>
+    <div class="cc-desc">Governs how systems integrate with the LLM service layer. Every LLM call must declare calling_system, task_type, prompt_id. No system may invoke the LLM layer without a registered invocation rule.</div>
+    <div class="cc-rules">
+      <div class="cc-rule">calling_system field required on every LLM call</div>
+      <div class="cc-rule">task_type must map to a registered routing rule</div>
+      <div class="cc-rule">Ambiguity and uncertainty must be surfaced to the operator — never swallowed</div>
+      <div class="cc-rule">LIC invocation rules are undefined for CORTEX — Tier 1 gap</div>
+    </div>
+    <div class="cc-div"></div>
+    <div class="cc-systems"><span class="sys-chip">LLM-SVC</span><span class="sys-chip">CORTEX</span><span class="sys-chip">CIF</span><span class="sys-chip">BSA</span></div>
+  </div>
+
+  <!-- SVS -->
+  <div class="contract-card">
+    <div class="cc-head">
+      <div class="cc-id-wrap"><div class="cc-id">SVS</div><span class="cc-badge required">Required</span></div>
+    </div>
+    <div class="cc-title">State Visibility Standard</div>
+    <div class="cc-abbr">Execution state · confidence · validation — always visible</div>
+    <div class="cc-desc">Governs how execution state and confidence are surfaced to the operator. No state may be hidden, inferred, or presented ambiguously. The Five Visibility Requirements are the SVS checklist.</div>
+    <div class="cc-rules">
+      <div class="cc-rule">State must be visible before, during, and after every execution</div>
+      <div class="cc-rule">Confidence score (FLAG-B01) must be surfaced with band label (HIGH/MEDIUM/LOW)</div>
+      <div class="cc-rule">next_action must always be present — operator must never be left in ambiguity</div>
+      <div class="cc-rule">Hidden state = SVS violation. Implied state = SVS violation.</div>
+    </div>
+    <div class="cc-div"></div>
+    <div class="cc-systems"><span class="sys-chip">All surfaces</span></div>
+  </div>
+
+  <!-- SNC -->
+  <div class="contract-card">
+    <div class="cc-head">
+      <div class="cc-id-wrap"><div class="cc-id">SNC</div><span class="cc-badge partial">Partial</span></div>
+    </div>
+    <div class="cc-title">System Navigation Contract</div>
+    <div class="cc-abbr">Navigation structure · context persistence · cross-surface routing</div>
+    <div class="cc-desc">Governs how operators move between surfaces and systems. Navigation must be consistent, predictable, and preserve context across transitions. VISTA has strong SNC compliance. Context persistence gap identified.</div>
+    <div class="cc-rules">
+      <div class="cc-rule">Navigation structure must not diverge across operator-facing surfaces</div>
+      <div class="cc-rule">Context (current asset, session, analysis state) must persist across navigation transitions</div>
+      <div class="cc-rule">VISTA: SVS strong, SNC strong, context persistence incomplete — Tier 2</div>
+    </div>
+    <div class="cc-div"></div>
+    <div class="cc-systems"><span class="sys-chip">VISTA</span><span class="sys-chip">BASE-UI</span><span class="sys-chip">CIF-UI</span></div>
+  </div>
+
+  <!-- CBC -->
+  <div class="contract-card">
+    <div class="cc-head">
+      <div class="cc-id-wrap"><div class="cc-id">CBC</div><span class="cc-badge required">Required</span></div>
+    </div>
+    <div class="cc-title">Component Behavior Contract</div>
+    <div class="cc-abbr">12 registered component types · Design Doctrine enforced · paicraft.io template</div>
+    <div class="cc-desc">Governs how components behave — hover states, interaction patterns, data binding, rendering. The 12 CIF ComponentType enums are the canonical component vocabulary. The paicraft.io surface template is the reference implementation.</div>
+    <div class="cc-rules">
+      <div class="cc-rule">Components must use the canonical 12-type vocabulary: hero, text_block, image, video, cta, form, offer_stack, social_proof, testimonial, faq, diagnostic_entry, trust_bar</div>
+      <div class="cc-rule">Design Doctrine (Clarity → Flow → Delight) governs all component composition decisions</div>
+      <div class="cc-rule">PLABand values must use canonical CIDE labels: reject/conditional_test/approved_test/scale_candidate</div>
+      <div class="cc-rule">creative-frontend NineScores must use HCTS vocabulary — current pre-HCTS schema is a Block violation</div>
+    </div>
+    <div class="cc-div"></div>
+    <div class="cc-systems"><span class="sys-chip">CIF</span><span class="sys-chip">FORGE</span><span class="sys-chip">BASE-UI</span></div>
+  </div>
+
+  <!-- TIS -->
+  <div class="contract-card" style="grid-column:1/-1">
+    <div class="cc-head">
+      <div class="cc-id-wrap"><div class="cc-id">TIS</div><span class="cc-badge required">Required</span></div>
+    </div>
+    <div class="cc-title">Trust &amp; Insight Surface</div>
+    <div class="cc-abbr">Confidence · validation · trust signals — never implied, never omitted</div>
+    <div class="cc-desc">Governs how trust and confidence are communicated to the operator. Every surface that presents an intelligence output must make the evidence quality explicit. No trust signal may be implied by absence, design treatment, or default state. TIS is C0 (The Human Principle) operationalised as a display contract.</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem;margin:.75rem 0">
+      <div style="padding:.75rem 1rem;background:var(--elevated);border-radius:var(--r-md);border:.5px solid var(--border)">
+        <div style="font-size:.58rem;letter-spacing:.12em;text-transform:uppercase;color:var(--text-3);margin-bottom:.3rem">Confidence display</div>
+        <div style="font-size:.65rem;color:var(--text-2);line-height:1.6">FLAG-B01 score + band (HIGH/MEDIUM/LOW) must be visible. The 0.92 cap must be acknowledged — no surface may imply 100% certainty.</div>
+      </div>
+      <div style="padding:.75rem 1rem;background:var(--elevated);border-radius:var(--r-md);border:.5px solid var(--border)">
+        <div style="font-size:.58rem;letter-spacing:.12em;text-transform:uppercase;color:var(--text-3);margin-bottom:.3rem">Validation status</div>
+        <div style="font-size:.65rem;color:var(--text-2);line-height:1.6">Block / Flag / Note must be surfaced with rationale. A Block may never be silenced by UI treatment. All governance decisions must be traceable.</div>
+      </div>
+      <div style="padding:.75rem 1rem;background:var(--elevated);border-radius:var(--r-md);border:.5px solid var(--border)">
+        <div style="font-size:.58rem;letter-spacing:.12em;text-transform:uppercase;color:var(--text-3);margin-bottom:.3rem">Ethics gate visibility</div>
+        <div style="font-size:.65rem;color:var(--text-2);line-height:1.6">If an Ethics Gate (C6) block is triggered, the operator must see which category (VS-001/002/003 or PCC-001/002/003/004) triggered it. Not just "blocked" — why blocked.</div>
+      </div>
+    </div>
+    <div class="cc-div"></div>
+    <div class="cc-systems"><span class="sys-chip">All operator-facing surfaces</span><span class="sys-chip">All LLM-active surfaces</span></div>
+  </div>
+
+</div><!-- /contract-grid -->
+
+<!-- Gap Register -->
+<section style="margin:0 0 .75rem" class="reveal d5">
+  <div class="sec-eyebrow">Gap Register · Phase 0 patch applied · 2026-03-24</div>
+</section>
+<div class="gap-grid reveal d5">
+  <div class="gap-item t1">
+    <span class="gap-tag block">Block · Tier 1</span>
+    <div>
+      <div class="gap-title">CIF — Direct Anthropic API bypass · LPC + LIC violation</div>
+      <div class="gap-desc">CIF calls api.anthropic.com directly via external_llm_client.py for advanced_reasoning, narrate, insight, recommend, explain task types. The shared LLM service exists with prompt registry, router, cache and cost tracking — CIF bypasses all governance infrastructure.</div>
+      <div class="gap-fix">routing_policy.py REMOTE_TASKS → must route via stardance-llm-service</div>
+    </div>
+  </div>
+  <div class="gap-item t1">
+    <span class="gap-tag block">Block · Tier 1</span>
+    <div>
+      <div class="gap-title">stardance-creative-frontend — Deprecated dimension model · SVS + CBC violation</div>
+      <div class="gap-desc">Frontend renders pre-HCTS vocabulary: clarity, urgency, credibility, emotion, specificity, friction, value. DC-003 retired this vocabulary. Components are bound to the wrong schema and cannot feed correctly into the creative pipeline.</div>
+      <div class="gap-fix">lib/api.ts NineScores → replace 6 deprecated traits with trust, authenticity, taste, autonomy, ethics, resonance, empathy</div>
+    </div>
+  </div>
+  <div class="gap-item t1">
+    <span class="gap-tag block">Block · Tier 1</span>
+    <div>
+      <div class="gap-title">C6 Ethics Gate — Not deployed in stardance-shared · GovernorService gap</div>
+      <div class="gap-desc">VS-001/002/003 and PCC-001/002/003/004 registries exist only in SD-04 canon/v1.1. The CIDE rebuild has no ethical blocking layer. Every creative asset passing through CIDE is currently unguarded against vulnerable segments and prohibited claim categories.</div>
+      <div class="gap-fix">SD-04 canon/v1.1/ → stardance-shared/stardance_shared/constants/governance.py</div>
+    </div>
+  </div>
+  <div class="gap-item t2">
+    <span class="gap-tag flag">Flag · Tier 2</span>
+    <div>
+      <div class="gap-title">PLABand divergence — IMS + CBC violation across shared lib and CIDE</div>
+      <div class="gap-desc">CIDE canonical: reject/conditional_test/approved_test/scale_candidate. stardance-shared: reject/review/conditional/launch. Any system importing PLABand from shared renders incorrect state labels. CIDE is canonical — shared lib must update.</div>
+      <div class="gap-fix">stardance-shared/schemas/pla_output.py PLABand → update to match pla_engine.py</div>
+    </div>
+  </div>
+  <div class="gap-item t2">
+    <span class="gap-tag flag">Flag · Tier 2</span>
+    <div>
+      <div class="gap-title">C4 Design Doctrine — Not yet bound into UXC components · IMS/CBC gap</div>
+      <div class="gap-desc">The Design Doctrine (Clarity → Flow → Delight) is platform doctrine but not yet enforced through UXC contracts. IMS, SVS, CBC, TIS do not currently have design doctrine compliance as a measurable criterion.</div>
+      <div class="gap-fix">UXC v1.3 — bind Design Doctrine enforcement into CBC component behavior requirements</div>
+    </div>
+  </div>
+</div>
+
+<!-- System compliance matrix -->
+<section style="margin:0 0 .75rem" class="reveal d6">
+  <div class="sec-eyebrow">System Compliance Matrix · UXC v1.2</div>
+</section>
+<table class="matrix-table reveal d6">
+  <thead>
+    <tr>
+      <th>System</th><th>IMS</th><th>LPC</th><th>LIC</th><th>SVS</th><th>SNC</th><th>CBC</th><th>TIS</th><th>Priority</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr><td>SCOUT</td><td class="cell-partial">Partial</td><td class="cell-na">N/A</td><td class="cell-na">N/A</td><td class="cell-weak">Weak</td><td class="cell-na">N/A</td><td class="cell-na">N/A</td><td class="cell-na">N/A</td><td>Tier 2 — SVS gap</td></tr>
+    <tr><td>BASE</td><td class="cell-strong">Strong</td><td class="cell-na">None</td><td class="cell-na">N/A</td><td class="cell-strong">Strong</td><td class="cell-partial">Partial</td><td class="cell-partial">Partial</td><td class="cell-partial">Partial</td><td>Tier 2 — unified exec object</td></tr>
+    <tr><td>CORTEX</td><td class="cell-partial">Partial</td><td class="cell-weak">High risk</td><td class="cell-weak">Undefined</td><td class="cell-partial">Partial</td><td class="cell-partial">Partial</td><td class="cell-partial">Partial</td><td class="cell-partial">Partial</td><td>Tier 1 — LPC + LIC</td></tr>
+    <tr><td>CIF</td><td class="cell-partial">Partial</td><td class="cell-weak">Block</td><td class="cell-weak">Block</td><td class="cell-partial">Partial</td><td class="cell-partial">Partial</td><td class="cell-strong">Strong</td><td class="cell-partial">Partial</td><td>Tier 1 — direct API bypass</td></tr>
+    <tr><td>CAST</td><td class="cell-weak">Undefined</td><td class="cell-partial">Partial</td><td class="cell-weak">Undefined</td><td class="cell-weak">Weak</td><td class="cell-na">N/A</td><td class="cell-partial">Partial</td><td class="cell-weak">Weak</td><td>Tier 1 — IMS undefined</td></tr>
+    <tr><td>FORGE</td><td class="cell-na">Not built</td><td class="cell-na">Not built</td><td class="cell-na">Not built</td><td class="cell-na">Not built</td><td class="cell-na">Not built</td><td class="cell-na">Not built</td><td class="cell-na">Not built</td><td>Future — build contract only</td></tr>
+    <tr><td>EDGE</td><td class="cell-partial">Partial</td><td class="cell-partial">Partial</td><td class="cell-partial">Partial</td><td class="cell-partial">Partial</td><td class="cell-na">N/A</td><td class="cell-na">N/A</td><td class="cell-partial">Partial</td><td>Tier 3 — drift risk</td></tr>
+    <tr><td>VISTA</td><td class="cell-strong">Strong</td><td class="cell-na">N/A</td><td class="cell-na">N/A</td><td class="cell-strong">Strong</td><td class="cell-strong">Strong</td><td class="cell-strong">Strong</td><td class="cell-partial">Partial</td><td>Tier 2 — context persistence</td></tr>
+    <tr><td>ATLAS</td><td class="cell-weak">None</td><td class="cell-partial">Partial</td><td class="cell-weak">Undefined</td><td class="cell-weak">None</td><td class="cell-na">N/A</td><td class="cell-na">N/A</td><td class="cell-weak">None</td><td>Tier 2 — no alignment yet</td></tr>
+    <tr><td>TRUTH</td><td class="cell-na">Not active</td><td class="cell-na">Not active</td><td class="cell-na">Not active</td><td class="cell-na">Not active</td><td class="cell-na">Not active</td><td class="cell-na">Not active</td><td class="cell-na">Not active</td><td>Tier 3 — future risk</td></tr>
+  </tbody>
+</table>
+
+<!-- Enforcement ladder -->
+<section style="margin:0 0 .75rem" class="reveal d7">
+  <div class="sec-eyebrow">Enforcement Infrastructure · Section 8B</div>
+</section>
+<div class="enforcement-grid reveal d7">
+  <div class="ef-card l1">
+    <div class="ef-layer">L1</div>
+    <div class="ef-name">Static Validation</div>
+    <div class="ef-desc">Spec-level. Contract declared. Repo scope declared. UXC version locked.</div>
+  </div>
+  <div class="ef-card l2">
+    <div class="ef-layer">L2</div>
+    <div class="ef-name">Build Validation</div>
+    <div class="ef-desc">CI/CD gates: IMS_check · LPC_check · SVS_check · SNC_check · CBC_check · TIS_check</div>
+  </div>
+  <div class="ef-card l3">
+    <div class="ef-layer">L3</div>
+    <div class="ef-name">Runtime Validation</div>
+    <div class="ef-desc">Live execution: missing_state → ERROR · missing_confidence → ERROR · invalid_transition → ERROR</div>
+  </div>
+  <div class="ef-card l4">
+    <div class="ef-layer">L4</div>
+    <div class="ef-name">Audit Validation</div>
+    <div class="ef-desc">Drift detection + cross-system consistency. Scheduled + drift_trigger. VAC artifacts required.</div>
+  </div>
+  <div class="ef-card l5">
+    <div class="ef-layer">Gates</div>
+    <div class="ef-name">Event-Driven Gates</div>
+    <div class="ef-desc">Design → Implementation → PreMerge → Runtime → Live Audit. No promotion without gate pass.</div>
+  </div>
+</div>
+
+<!-- Footer -->
+<footer class="doc-footer reveal d8">
+  <span>SD Unified Experience Contract · v1.2 · Phase 0 patches applied · 2026-03-24</span>
+  <span class="footer-v">Trial Pack active — 3 themes × 3 modes · sd_brand_palettes trial-01-locked</span>
+</footer>
+
+</div><!-- /page -->
+
+<!-- ── UAT Feedback Widget ── -->
+<button class="fb-trigger" onclick="toggleFeedback()" id="fb-trigger">
+  ✦ UAT Feedback <span class="fb-count" id="fb-count">0</span>
+</button>
+
+<div class="fb-drawer" id="fb-drawer">
+  <div class="fb-drawer-header">
+    <div>
+      <div class="fb-drawer-title">UAT Feedback</div>
+      <div class="fb-drawer-sub" id="fb-context-label">Signal Orange · Dark</div>
+    </div>
+    <button class="fb-close" onclick="toggleFeedback()">✕</button>
+  </div>
+
+  <div class="fb-drawer-body" id="fb-form-area">
+    <div class="fb-context" id="fb-ctx-pills"></div>
+
+    <label class="fb-field-label">Your name / initials</label>
+    <input type="text" id="fb-tester" class="fb-textarea"
+      style="min-height:auto;resize:none;padding:.5rem .75rem;margin-bottom:1rem;"
+      placeholder="e.g. Jason W" maxlength="60">
+
+    <label class="fb-field-label">Theme rating</label>
+    <div class="fb-rating" id="fb-stars">
+      <div class="fb-star" data-v="1" onclick="setRating(1)">1</div>
+      <div class="fb-star" data-v="2" onclick="setRating(2)">2</div>
+      <div class="fb-star" data-v="3" onclick="setRating(3)">3</div>
+      <div class="fb-star" data-v="4" onclick="setRating(4)">4</div>
+      <div class="fb-star" data-v="5" onclick="setRating(5)">5</div>
+    </div>
+
+    <div class="fb-section-label">What did you test?</div>
+    <div class="fb-checks">
+      <div class="fb-check" onclick="toggleCheck(this)" data-check="readability">
+        <div class="fb-check-box">✓</div>
+        <div class="fb-check-label">Text readability across surface backgrounds</div>
+      </div>
+      <div class="fb-check" onclick="toggleCheck(this)" data-check="contrast">
+        <div class="fb-check-box">✓</div>
+        <div class="fb-check-label">Accent/signal color contrast against backgrounds</div>
+      </div>
+      <div class="fb-check" onclick="toggleCheck(this)" data-check="typography">
+        <div class="fb-check-box">✓</div>
+        <div class="fb-check-label">Display & body font rendering</div>
+      </div>
+      <div class="fb-check" onclick="toggleCheck(this)" data-check="switching">
+        <div class="fb-check-box">✓</div>
+        <div class="fb-check-label">Theme / mode switching felt instantaneous</div>
+      </div>
+      <div class="fb-check" onclick="toggleCheck(this)" data-check="state-signals">
+        <div class="fb-check-box">✓</div>
+        <div class="fb-check-label">Pass / Caution / Fail signal colors clearly distinct</div>
+      </div>
+    </div>
+
+    <label class="fb-field-label">Notes (optional)</label>
+    <textarea class="fb-textarea" id="fb-note" placeholder="Describe any issues, regressions, or observations…"></textarea>
+
+    <div id="fb-passcode-row" style="display:none;margin-bottom:.5rem;">
+      <label class="fb-field-label">Access passcode</label>
+      <input type="password" id="fb-passcode" class="fb-textarea"
+        style="min-height:auto;resize:none;padding:.5rem .75rem;"
+        placeholder="Enter UAT passcode">
+    </div>
+
+    <div id="fb-error" style="display:none;font-size:.65rem;color:var(--signal-fail);padding:.5rem .75rem;border:.5px solid rgba(220,38,38,0.3);background:rgba(220,38,38,0.07);border-radius:6px;margin-bottom:.875rem;line-height:1.5;"></div>
+
+    <button class="fb-submit" id="fb-submit" onclick="submitFeedback()" disabled>Submit → Notion</button>
+  </div>
+
+  <div class="fb-success" id="fb-success">
+    <div class="fb-success-icon" id="fb-success-icon">✦</div>
+    <div class="fb-success-msg" id="fb-success-msg">Synced to Notion</div>
+    <div class="fb-success-sub" id="fb-success-sub">Row created in UAT Feedback database</div>
+  </div>
+
+  <div class="fb-log">
+    <div class="fb-log-label">
+      Session log
+      <button class="fb-log-clear" onclick="clearLog()">Clear</button>
+    </div>
+    <div class="fb-entries" id="fb-entries">
+      <div class="fb-empty" id="fb-empty-msg">No feedback submitted yet</div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── SD Brand Palette System — trial-01-locked (inlined for standalone HTML) ──
+
+const ACTIVE_PALETTE = "vega";
+const ACTIVE_MODE    = "classic";
+
+const PALETTES = {
+  vega: {
+    name: "Vega",
+    dark:    { bg:"#050f14",surface:"#081520",elevated:"#0d1e2d",border:"rgba(8,145,178,0.18)",text:"#e0f0f8",text2:"#7090a0",text3:"#304050",primary:"#30ABCA",primaryHover:"#0891B2",primaryLight:"rgba(8,145,178,0.15)",secondary:"#38bdf8",displayFont:"DM Sans",bodyFont:"DM Mono" },
+    light:   { bg:"#f0f9ff",surface:"#ffffff",elevated:"#e0f2fe",border:"rgba(8,145,178,0.12)",text:"#0c1a24",text2:"#4a7080",text3:"#90b0c0",primary:"#30ABCA",primaryHover:"#0891B2",primaryLight:"rgba(8,145,178,0.10)",secondary:"#0369a1",displayFont:"DM Sans",bodyFont:"DM Mono" },
+    classic: { bg:"#faf7f2",surface:"#f5f0e8",elevated:"#efe9dc",border:"rgba(8,145,178,0.10)",text:"#0c1a24",text2:"#4a7080",text3:"#90b0c0",primary:"#30ABCA",primaryHover:"#0891B2",primaryLight:"rgba(8,145,178,0.10)",secondary:"#0369a1",displayFont:"DM Sans",bodyFont:"DM Mono" },
+    loop:    { signals:"#38bdf8",canon:"#a78bfa",systems:"#30ABCA",learning:"#059669",moats:"#D97706" },
+  },
+  nova: {
+    name: "Nova",
+    dark:    { bg:"#07070d",surface:"#0d0d16",elevated:"#161923",border:"rgba(255,255,255,0.07)",text:"#e4e2db",text2:"#9b9890",text3:"#45433f",primary:"#E8751A",primaryHover:"#D96310",primaryLight:"rgba(232,117,26,0.15)",secondary:"#0891B2",displayFont:"Syne",bodyFont:"IBM Plex Mono" },
+    light:   { bg:"#f7f6f2",surface:"#ffffff",elevated:"#f0ede8",border:"rgba(0,0,0,0.08)",text:"#1a1816",text2:"#5e5c58",text3:"#9e9a94",primary:"#E8751A",primaryHover:"#D96310",primaryLight:"rgba(232,117,26,0.12)",secondary:"#0891B2",displayFont:"Syne",bodyFont:"IBM Plex Mono" },
+    classic: { bg:"#faf7f2",surface:"#f5f0e8",elevated:"#efe9dc",border:"rgba(0,0,0,0.07)",text:"#292524",text2:"#78716c",text3:"#a8a29e",primary:"#E8751A",primaryHover:"#D96310",primaryLight:"rgba(232,117,26,0.10)",secondary:"#0891B2",displayFont:"Syne",bodyFont:"IBM Plex Mono" },
+    loop:    { signals:"#378add",canon:"#a78bfa",systems:"#E8751A",learning:"#1d9e75",moats:"#c8973a" },
+  },
+
+  hydra: {
+    name: "Hydra",
+    dark:    { bg:"#0A0A0A",surface:"#141414",elevated:"#1E1E1E",border:"rgba(200,184,154,0.10)",text:"#F0E8D8",text2:"#908070",text3:"#383028",primary:"#C8B89A",primaryHover:"#B8A888",primaryLight:"rgba(200,184,154,0.12)",secondary:"#A89878",displayFont:"Syne",bodyFont:"IBM Plex Mono" },
+    light:   { bg:"#f4f1ea",surface:"#faf8f4",elevated:"#ede8de",border:"rgba(26,26,26,0.09)",text:"#1A1A1A",text2:"#4A4A4A",text3:"#9A9488",primary:"#1A1A1A",primaryHover:"#2A2A2A",primaryLight:"rgba(26,26,26,0.10)",secondary:"#C8B89A",displayFont:"Syne",bodyFont:"IBM Plex Mono" },
+    classic: { bg:"#f0ebe0",surface:"#e8e1d0",elevated:"#dfd7c4",border:"rgba(26,26,26,0.10)",text:"#1A1A1A",text2:"#4A4A4A",text3:"#9A9488",primary:"#1A1A1A",primaryHover:"#2A2A2A",primaryLight:"rgba(26,26,26,0.08)",secondary:"#C8B89A",displayFont:"Syne",bodyFont:"IBM Plex Mono" },
+    loop:    { signals:"#C8B89A",canon:"#a78bfa",systems:"#1A1A1A",learning:"#059669",moats:"#D97706" },
+  },
+};
+
+const SIGNAL_COLORS = { pass:"#059669", caution:"#D97706", fail:"#DC2626", info:"#2563EB" };
+
+/* ── Safe storage wrapper ── */
+const _store = {
+  get(k) { try { return localStorage.getItem(k); } catch(e) { return null; } },
+  set(k, v) { try { localStorage.setItem(k, v); } catch(e) {} }
+};
+
+let _activePalette = _store.get("sd-palette") || ACTIVE_PALETTE;
+let _activeMode    = _store.get("sd-mode") || ACTIVE_MODE;
+
+function applyPalette(palKey, mode) {
+  const p = PALETTES[palKey];
+  if (!p) return;
+  const t = p[mode];
+  const l = p.loop;
+  const r = document.documentElement.style;
+  r.setProperty("--bg", t.bg);
+  r.setProperty("--surface", t.surface);
+  r.setProperty("--elevated", t.elevated);
+  r.setProperty("--border", t.border);
+  r.setProperty("--text", t.text);
+  r.setProperty("--text-2", t.text2);
+  r.setProperty("--text-3", t.text3);
+  r.setProperty("--accent", t.primary);
+  r.setProperty("--accent-hover", t.primaryHover);
+  r.setProperty("--accent-dim", t.primaryLight);
+  r.setProperty("--secondary", t.secondary);
+  r.setProperty("--signals", l.signals);
+  r.setProperty("--canon", l.canon);
+  r.setProperty("--systems", l.systems);
+  r.setProperty("--learning", l.learning);
+  r.setProperty("--moats", l.moats);
+  r.setProperty("--signal-pass", SIGNAL_COLORS.pass);
+  r.setProperty("--signal-caution", SIGNAL_COLORS.caution);
+  r.setProperty("--signal-fail", SIGNAL_COLORS.fail);
+  r.setProperty("--signal-info", SIGNAL_COLORS.info);
+
+  // Apply fonts
+  document.body.style.fontFamily = `"${t.bodyFont}", "IBM Plex Mono", ui-monospace, monospace`;
+  document.querySelectorAll('.sec-headline,.cc-title,.dc-headline,.vs-title,.spine-title,.foundation-title')
+    .forEach(el => el.style.fontFamily = `"${t.displayFont}", "DM Serif Display", Georgia, serif`);
+
+  _store.set("sd-palette", palKey);
+  _store.set("sd-mode", mode);
+
+  updateSwitcherUI(palKey, mode);
+  updatePreview(palKey, mode, t, l);
+}
+
+function handlePalette(btn) {
+  _activePalette = btn.dataset.palette;
+  applyPalette(_activePalette, _activeMode);
+  if (_fbDrawerOpen) refreshContextPills();
+}
+
+function handleMode(btn) {
+  _activeMode = btn.dataset.mode;
+  applyPalette(_activePalette, _activeMode);
+  if (_fbDrawerOpen) refreshContextPills();
+}
+
+function updateSwitcherUI(palKey, mode) {
+  document.querySelectorAll('.ps-btn:not(.mode-btn)').forEach(b => b.classList.toggle('active', b.dataset.palette === palKey));
+  document.querySelectorAll('.ps-btn.mode-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
+}
+
+function updatePreview(palKey, mode, t, l) {
+  const el = document.getElementById('palette-preview');
+  if (!el) return;
+  const palette = PALETTES[palKey];
+  const swatches = [
+    { color: t.bg,         label: 'bg' },
+    { color: t.surface,    label: 'surface' },
+    { color: t.primary,    label: 'accent' },
+    { color: t.secondary,  label: 'secondary' },
+    { color: l.signals,    label: 'signals' },
+    { color: l.canon,      label: 'canon' },
+    { color: l.systems,    label: 'systems' },
+    { color: l.learning,   label: 'learning' },
+    { color: l.moats,      label: 'moats' },
+  ];
+  el.innerHTML = swatches.map(s =>
+    `<div style="display:flex;align-items:center;gap:.3rem;margin-right:.4rem">
+      <div style="width:12px;height:12px;border-radius:50%;background:${s.color};border:.5px solid rgba(128,128,128,0.2);flex-shrink:0"></div>
+      <span style="font-size:.58rem;color:var(--text-3)">${s.label}</span>
+    </div>`
+  ).join('') +
+  `<span style="margin-left:.5rem;font-size:.58rem;color:var(--text-3)">${t.displayFont} / ${t.bodyFont}</span>`;
+}
+
+// Init on load
+document.addEventListener('DOMContentLoaded', () => {
+  _activePalette = _store.get("sd-palette") || ACTIVE_PALETTE;
+  _activeMode    = _store.get("sd-mode") || "dark";
+  applyPalette(_activePalette, _activeMode);
+});
+// ── UAT Feedback System — sd-uat-relay ──────────────────────
+// Posts to /api/feedback (Express relay). No API key in browser.
+
+const PALETTE_TO_NOTION = {
+  "Vega":  "Vega",
+  "Nova":  "Nova",
+  "Hydra": "Hydra",
+};
+const MODE_TO_NOTION = { dark:"Dark", light:"Light", classic:"Classic" };
+
+const _fbLog = [];
+let _fbRating = 0;
+let _fbDrawerOpen = false;
+let _fbSubmitting = false;
+
+// ── Drawer ───────────────────────────────────────────────────
+function toggleFeedback() {
+  _fbDrawerOpen = !_fbDrawerOpen;
+  const drawer = document.getElementById('fb-drawer');
+  if (drawer) drawer.classList.toggle('open', _fbDrawerOpen);
+  if (_fbDrawerOpen) {
+    document.getElementById('fb-form-area').style.display = 'block';
+    document.getElementById('fb-success').classList.remove('show');
+    hideError();
+    resetForm();
+    refreshContextPills();
+    checkPasscodeRequired();
+  }
+}
+
+function refreshContextPills() {
+  const palName = (PALETTES[_activePalette] || {}).name || _activePalette;
+  const mode    = _activeMode.charAt(0).toUpperCase() + _activeMode.slice(1);
+  const ctx = document.getElementById('fb-context-label');
+  if (ctx) ctx.textContent = `${palName} · ${mode}`;
+  const pillsEl = document.getElementById('fb-ctx-pills');
+  if (!pillsEl) return;
+  pillsEl.innerHTML = [palName, mode, 'UXC v1.2'].map((p, i) =>
+    `<span class="fb-ctx-pill${i < 2 ? ' active' : ''}">${p}</span>`
+  ).join('');
+}
+
+// Probe /health to see if server requires a passcode
+async function checkPasscodeRequired() {
+  try {
+    const r = await fetch('/health');
+    if (r.ok) {
+      const d = await r.json();
+      const row = document.getElementById('fb-passcode-row');
+      if (row) row.style.display = d.passcode ? 'block' : 'none';
+    }
+  } catch(e) {}
+}
+
+// ── Form ─────────────────────────────────────────────────────
+function setRating(v) {
+  _fbRating = v;
+  document.querySelectorAll('.fb-star').forEach(s =>
+    s.classList.toggle('selected', parseInt(s.dataset.v) <= v)
+  );
+  checkSubmitReady();
+}
+
+function toggleCheck(el) { el.classList.toggle('checked'); }
+
+function checkSubmitReady() {
+  const btn = document.getElementById('fb-submit');
+  if (btn) btn.disabled = (_fbRating === 0 || _fbSubmitting);
+}
+
+function resetForm() {
+  _fbRating = 0; _fbSubmitting = false;
+  document.querySelectorAll('.fb-star').forEach(s => s.classList.remove('selected'));
+  document.querySelectorAll('.fb-check').forEach(c => c.classList.remove('checked'));
+  const note = document.getElementById('fb-note');
+  if (note) note.value = '';
+  const btn = document.getElementById('fb-submit');
+  if (btn) { btn.disabled = true; btn.textContent = 'Submit → Notion'; }
+}
+
+function showError(msg) {
+  const el = document.getElementById('fb-error');
+  if (el) { el.textContent = msg; el.style.display = 'block'; }
+}
+
+function hideError() {
+  const el = document.getElementById('fb-error');
+  if (el) el.style.display = 'none';
+}
+
+// ── Submit ───────────────────────────────────────────────────
+async function submitFeedback() {
+  if (_fbSubmitting || _fbRating === 0) return;
+  _fbSubmitting = true;
+  hideError();
+
+  const btn = document.getElementById('fb-submit');
+  if (btn) { btn.disabled = true; btn.textContent = 'Syncing…'; }
+
+  const palName    = (PALETTES[_activePalette] || {}).name || _activePalette;
+  const modeLabel  = MODE_TO_NOTION[_activeMode] || _activeMode;
+  const themeLabel = PALETTE_TO_NOTION[palName] || palName;
+  const note       = (document.getElementById('fb-note')     || {}).value || '';
+  const tester     = (document.getElementById('fb-tester')   || {}).value || 'Anonymous';
+  const passcode   = (document.getElementById('fb-passcode') || {}).value || '';
+  const checks     = [...document.querySelectorAll('.fb-check.checked')].map(c => c.dataset.check);
+  const ts         = new Date().toLocaleString([], { dateStyle:'short', timeStyle:'short' });
+
+  try {
+    const res = await fetch('/api/feedback', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        palette:     themeLabel,
+        mode:        modeLabel,
+        rating:      _fbRating,
+        checks,
+        notes:       note.trim(),
+        tester:      tester.trim() || 'Anonymous',
+        passcode,
+        submittedAt: ts,
+        uxcVersion:  'v1.2',
+      }),
+    });
+
+    const data = await res.json().catch(() => ({}));
+
+    if (res.status === 401) {
+      showError('Incorrect passcode. Try again.');
+      _fbSubmitting = false;
+      if (btn) { btn.disabled = false; btn.textContent = 'Submit → Notion'; }
+      return;
+    }
+
+    if (!res.ok || !data.ok) {
+      showError(`Submission failed: ${data.error || res.status}. Check the relay server.`);
+      _fbSubmitting = false;
+      if (btn) { btn.disabled = false; btn.textContent = 'Submit → Notion'; }
+      return;
+    }
+
+    // Success — log locally + show confirmation
+    const entry = { palette: themeLabel, mode: modeLabel, tester: tester.trim(), rating: _fbRating, checks, note: note.trim(), ts };
+    _fbLog.push(entry);
+    _store.set('sd-fb-log', JSON.stringify(_fbLog));
+
+    const countEl = document.getElementById('fb-count');
+    if (countEl) countEl.textContent = _fbLog.length;
+
+    const formArea = document.getElementById('fb-form-area');
+    const success  = document.getElementById('fb-success');
+    const msgEl    = document.getElementById('fb-success-msg');
+    const subEl    = document.getElementById('fb-success-sub');
+    if (formArea) formArea.style.display = 'none';
+    if (success)  success.classList.add('show');
+    if (msgEl)    msgEl.innerHTML = `Synced to Notion — <strong>${themeLabel} · ${modeLabel}</strong>`;
+    if (subEl)    subEl.textContent = `${entry.tester} · ${ts}`;
+
+    renderLog();
+    _fbSubmitting = false;
+
+    setTimeout(() => {
+      _fbDrawerOpen = false;
+      const drawer = document.getElementById('fb-drawer');
+      if (drawer) drawer.classList.remove('open');
+    }, 2000);
+
+  } catch(err) {
+    showError(`Network error: ${err.message}`);
+    _fbSubmitting = false;
+    if (btn) { btn.disabled = false; btn.textContent = 'Submit → Notion'; }
+  }
+}
+
+// ── Log ──────────────────────────────────────────────────────
+function renderLog() {
+  const container = document.getElementById('fb-entries');
+  const emptyMsg  = document.getElementById('fb-empty-msg');
+  if (!container) return;
+  if (_fbLog.length === 0) {
+    if (emptyMsg) emptyMsg.style.display = 'block';
+    container.innerHTML = '';
+    container.appendChild(emptyMsg);
+    return;
+  }
+  if (emptyMsg) emptyMsg.style.display = 'none';
+  const stars = r => '★'.repeat(r) + '☆'.repeat(5 - r);
+  container.innerHTML = [..._fbLog].reverse().map(e =>
+    `<div class="fb-entry">
+      <div>
+        <div class="fb-entry-theme">${e.palette} · ${e.mode}</div>
+        <div class="fb-entry-rating">${stars(e.rating)} · ${e.tester || ''} · ${e.ts}</div>
+        ${e.note ? `<div class="fb-entry-note">${e.note}</div>` : ''}
+      </div>
+      <div class="fb-entry-meta">${e.checks.length} checks</div>
+    </div>`
+  ).join('');
+}
+
+function clearLog() {
+  _fbLog.length = 0;
+  _store.set('sd-fb-log', '[]');
+  const countEl = document.getElementById('fb-count');
+  if (countEl) countEl.textContent = '0';
+  renderLog();
+}
+
+// ── Init ─────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  try {
+    const saved = _store.get('sd-fb-log');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (Array.isArray(parsed)) {
+        _fbLog.push(...parsed);
+        const countEl = document.getElementById('fb-count');
+        if (countEl && _fbLog.length > 0) countEl.textContent = _fbLog.length;
+        renderLog();
+      }
+    }
+  } catch(e) {}
+});
+
+// Keep feedback context in sync when palette/mode changes
+// Context refreshed on drawer open — no patching needed
+
+</script>
+
+</body>
+</html>
