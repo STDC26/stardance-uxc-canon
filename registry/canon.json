@@ -1,0 +1,42 @@
+{
+  "canon": {
+    "version": "1.0.0",
+    "date": "2026-05-05",
+    "uis_version": "1.0",
+    "uxc_version": "1.3",
+    "repo": "https://github.com/STDC26/stardance-sd-ui-canon",
+    "repo_name": "stardance-sd-ui-canon",
+    "visibility": "public",
+    "spec": "/SPEC.md",
+    "status": "PTC review pending"
+  },
+  "themes": {
+    "vega":  { "name":"Vega",  "status":"locked", "uat_date":"2026-05-05", "primary":"#30ABCA", "fonts":{"display":"DM Sans","body":"DM Mono"},   "tooltip":"Fifth brightest star in the night sky",       "products":["SD"], "default_for":["SD"] },
+    "nova":  { "name":"Nova",  "status":"locked", "uat_date":"2026-05-05", "primary":"#E8751A", "fonts":{"display":"Syne","body":"IBM Plex Mono"}, "tooltip":"A stellar explosion from a white dwarf star", "products":["SD"] },
+    "hydra": { "name":"Hydra", "status":"locked", "uat_date":"2026-05-05", "primary_dark":"#C8B89A", "primary_light":"#1A1A1A", "fonts":{"display":"Syne","body":"IBM Plex Mono"}, "tooltip":"The outermost moon of Pluto", "products":["SD"] }
+  },
+  "modes": {
+    "dark":  { "label":"Dark",  "css_key":"dark",    "tooltip":"Night sky · pure signal",       "status":"locked", "uat_date":"2026-05-05" },
+    "light": { "label":"Light", "css_key":"light",   "tooltip":"Full spectrum · nothing hidden", "status":"locked", "uat_date":"2026-05-05" },
+    "vibe":  { "label":"Vibe",  "css_key":"classic", "tooltip":"Amber glow · ideas first",       "status":"locked", "uat_date":"2026-05-05", "note":"CSS key is classic for backwards compatibility" }
+  },
+  "uis_rules": {
+    "grid_rule":       "Theme count must equal mode count. 3x3 canonical.",
+    "default_theme":   "vega",
+    "default_mode":    "vibe",
+    "tooltip_position":"above · left-anchored · extends rightward · nowrap",
+    "hover_behaviour": "Theme buttons accent to primary colour on hover",
+    "creative_mandate":"3 of 4 criteria required: Motion · Depth · Character · Memory",
+    "vanilla_policy":  "Vanilla is a UXC violation"
+  },
+  "surfaces": {
+    "approved":    [{ "name":"Docente Cinematic Hero",   "file":"surfaces/approved/docente-cinematic-hero.html",    "type":"CBC-01", "tier":"3A", "uat_date":"2026-05-05", "product":"Docente" }],
+    "in_progress": [{ "name":"Stardance Cinematic Hero", "file":"surfaces/in-progress/stardance-cinematic-hero.html","type":"CBC-01", "tier":"3A", "status":"SVG logo pending", "product":"SD" }]
+  },
+  "font_pairs_locked": {
+    "docente_editorial": { "display":"Cormorant Garamond", "body":"DM Sans", "locked_date":"2026-05-05", "note":"Docente cinematic hero font pair" }
+  },
+  "deferred": {
+    "lyra": { "primary":"#1F4E8C", "name":"Lyra (Aiiro Indigo)", "reason":"Blue proximity with Vega · stronger fit for Docente" }
+  }
+}

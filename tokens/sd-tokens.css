@@ -1,0 +1,32 @@
+/**
+ * sd-tokens.css — SD UI Canon · Single Source of Truth
+ * Version: 1.0.0 · 2026-05-05
+ * Themes: Vega · Nova · Hydra
+ * Modes:  Dark · Light · Vibe
+ * Repo:   https://github.com/STDC26/stardance-sd-ui-canon
+ * Spec:   /SPEC.md
+ */
+
+/* Shared signal colors (invariant) */
+:root {
+  --signal-pass:    #059669;
+  --signal-caution: #D97706;
+  --signal-fail:    #DC2626;
+  --signal-info:    #2563EB;
+  --r-sm: 4px; --r-md: 8px; --r-lg: 12px; --r-xl: 16px;
+}
+
+/* VEGA — Arctic Teal · #30ABCA · DM Sans / DM Mono */
+[data-palette="vega"][data-mode="dark"]  { --bg:#050f14;--surface:#081520;--elevated:#0d1e2d;--border:rgba(8,145,178,0.18);--text:#e0f0f8;--text-2:#7090a0;--text-3:#304050;--accent:#30ABCA;--accent-hover:#0891B2;--accent-dim:rgba(8,145,178,0.15);--secondary:#38bdf8;--font-display:"DM Sans";--font-body:"DM Mono";--signals:#38bdf8;--canon:#a78bfa;--systems:#30ABCA;--learning:#059669;--moats:#D97706 }
+[data-palette="vega"][data-mode="light"] { --bg:#f0f9ff;--surface:#ffffff;--elevated:#e0f2fe;--border:rgba(8,145,178,0.12);--text:#0c1a24;--text-2:#4a7080;--text-3:#90b0c0;--accent:#30ABCA;--accent-hover:#0891B2;--accent-dim:rgba(8,145,178,0.10);--secondary:#0369a1;--font-display:"DM Sans";--font-body:"DM Mono";--signals:#0369a1;--canon:#7c3aed;--systems:#30ABCA;--learning:#059669;--moats:#D97706 }
+[data-palette="vega"][data-mode="classic"] { --bg:#faf7f2;--surface:#f5f0e8;--elevated:#efe9dc;--border:rgba(8,145,178,0.10);--text:#0c1a24;--text-2:#4a7080;--text-3:#90b0c0;--accent:#30ABCA;--accent-hover:#0891B2;--accent-dim:rgba(8,145,178,0.10);--secondary:#0369a1;--font-display:"DM Sans";--font-body:"DM Mono";--signals:#0369a1;--canon:#7c3aed;--systems:#30ABCA;--learning:#059669;--moats:#D97706 }
+
+/* NOVA — Signal Orange · #E8751A · Syne / IBM Plex Mono */
+[data-palette="nova"][data-mode="dark"]  { --bg:#07070d;--surface:#0d0d16;--elevated:#161923;--border:rgba(255,255,255,0.07);--text:#e4e2db;--text-2:#9b9890;--text-3:#45433f;--accent:#E8751A;--accent-hover:#D96310;--accent-dim:rgba(232,117,26,0.15);--secondary:#0891B2;--font-display:"Syne";--font-body:"IBM Plex Mono";--signals:#378add;--canon:#a78bfa;--systems:#E8751A;--learning:#1d9e75;--moats:#c8973a }
+[data-palette="nova"][data-mode="light"] { --bg:#f7f6f2;--surface:#ffffff;--elevated:#f0ede8;--border:rgba(0,0,0,0.08);--text:#1a1816;--text-2:#5e5c58;--text-3:#9e9a94;--accent:#E8751A;--accent-hover:#D96310;--accent-dim:rgba(232,117,26,0.12);--secondary:#0891B2;--font-display:"Syne";--font-body:"IBM Plex Mono";--signals:#0891B2;--canon:#7c3aed;--systems:#E8751A;--learning:#059669;--moats:#D97706 }
+[data-palette="nova"][data-mode="classic"] { --bg:#faf7f2;--surface:#f5f0e8;--elevated:#efe9dc;--border:rgba(0,0,0,0.07);--text:#292524;--text-2:#78716c;--text-3:#a8a29e;--accent:#E8751A;--accent-hover:#D96310;--accent-dim:rgba(232,117,26,0.10);--secondary:#0891B2;--font-display:"Syne";--font-body:"IBM Plex Mono";--signals:#0891B2;--canon:#7c3aed;--systems:#E8751A;--learning:#059669;--moats:#D97706 }
+
+/* HYDRA — Sumi Ink · #C8B89A dark / #1A1A1A light · Syne / IBM Plex Mono */
+[data-palette="hydra"][data-mode="dark"]  { --bg:#0A0A0A;--surface:#141414;--elevated:#1E1E1E;--border:rgba(200,184,154,0.10);--text:#F0E8D8;--text-2:#908070;--text-3:#383028;--accent:#C8B89A;--accent-hover:#B8A888;--accent-dim:rgba(200,184,154,0.12);--secondary:#A89878;--font-display:"Syne";--font-body:"IBM Plex Mono";--signals:#C8B89A;--canon:#a78bfa;--systems:#1A1A1A;--learning:#059669;--moats:#D97706 }
+[data-palette="hydra"][data-mode="light"] { --bg:#f4f1ea;--surface:#faf8f4;--elevated:#ede8de;--border:rgba(26,26,26,0.09);--text:#1A1A1A;--text-2:#4A4A4A;--text-3:#9A9488;--accent:#1A1A1A;--accent-hover:#2A2A2A;--accent-dim:rgba(26,26,26,0.10);--secondary:#C8B89A;--font-display:"Syne";--font-body:"IBM Plex Mono";--signals:#4A4A4A;--canon:#7c3aed;--systems:#1A1A1A;--learning:#059669;--moats:#D97706 }
+[data-palette="hydra"][data-mode="classic"] { --bg:#f0ebe0;--surface:#e8e1d0;--elevated:#dfd7c4;--border:rgba(26,26,26,0.10);--text:#1A1A1A;--text-2:#4A4A4A;--text-3:#9A9488;--accent:#1A1A1A;--accent-hover:#2A2A2A;--accent-dim:rgba(26,26,26,0.08);--secondary:#C8B89A;--font-display:"Syne";--font-body:"IBM Plex Mono";--signals:#4A4A4A;--canon:#7c3aed;--systems:#1A1A1A;--learning:#059669;--moats:#D97706 }

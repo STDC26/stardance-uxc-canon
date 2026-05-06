@@ -1,0 +1,21 @@
+/**
+ * tooltip-system.css — SD UI Canon · Locked Tooltip + Hover Preview
+ * Version: 1.0.0 · 2026-05-05 · UAT Full Pass
+ * Repo: https://github.com/STDC26/stardance-sd-ui-canon
+ *
+ * LOCKED TOOLTIP COPY — do not modify without DRJ ruling:
+ *   Vega  → "Fifth brightest star in the night sky"
+ *   Nova  → "A stellar explosion from a white dwarf star"
+ *   Hydra → "The outermost moon of Pluto"
+ *   Dark  → "Night sky · pure signal"
+ *   Light → "Full spectrum · nothing hidden"
+ *   Vibe  → "Amber glow · ideas first"
+ */
+[data-tooltip]                { position: relative; }
+[data-tooltip]::after         { content:attr(data-tooltip); position:absolute; bottom:calc(100% + 8px); left:0; right:auto; transform:none; background:var(--elevated,#161923); color:var(--text,#e4e2db); border:.5px solid var(--border,rgba(255,255,255,0.10)); border-radius:6px; padding:5px 10px; font-size:11px; line-height:1.4; white-space:nowrap; pointer-events:none; opacity:0; transition:opacity .15s ease; z-index:100; font-family:"IBM Plex Mono",monospace; font-weight:400; letter-spacing:0; text-transform:none; }
+[data-tooltip]:hover::after   { opacity: 1; }
+
+/* Theme hover colour preview — UIS requirement */
+[data-palette="vega"]:hover   { color:#30ABCA; border-color:#30ABCA; }
+[data-palette="nova"]:hover   { color:#E8751A; border-color:#E8751A; }
+[data-palette="hydra"]:hover  { color:#C8B89A; border-color:#C8B89A; }
