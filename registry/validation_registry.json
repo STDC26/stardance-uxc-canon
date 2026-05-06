@@ -1,0 +1,222 @@
+{
+  "registry": "validation_registry",
+  "version": "1.0.0",
+  "uxc_version": "1.0.1",
+  "date": "2026-05-05",
+  "description": "Validation gates per UXC contract layer. Activation Surface uses these to validate surface briefs and built artifacts.",
+
+  "validation_gates": [
+
+    {
+      "id": "VG-IMS-01",
+      "contract": "IMS",
+      "layer": 1,
+      "name": "State declaration required",
+      "check": "Surface must declare one of: idle | validating | processing | complete | partial_complete | failed",
+      "applies_to": "all_operator_surfaces",
+      "severity": "block",
+      "auto_checkable": true
+    },
+    {
+      "id": "VG-IMS-02",
+      "contract": "IMS",
+      "layer": 1,
+      "name": "Required fields present",
+      "check": "state, confidence, validation_status, next_action must all be present in operator-facing outputs",
+      "applies_to": "all_operator_surfaces",
+      "severity": "block",
+      "auto_checkable": true
+    },
+    {
+      "id": "VG-IMS-03",
+      "contract": "IMS",
+      "layer": 1,
+      "name": "Invalid transition blocked",
+      "check": "No state may transition to a non-adjacent state in the IMS state machine",
+      "applies_to": "all_LLM_driven_surfaces",
+      "severity": "block",
+      "auto_checkable": false,
+      "requires": "runtime_enforcement"
+    },
+
+    {
+      "id": "VG-LPC-01",
+      "contract": "LPC",
+      "layer": 2,
+      "name": "Output structure compliance",
+      "check": "All new LLM outputs must contain: what_happened, why_it_matters, what_to_do_next",
+      "applies_to": "all_LLM_active_surfaces",
+      "severity": "block",
+      "grace_period": "existing_outputs_flagged_not_blocked"
+    },
+    {
+      "id": "VG-LPC-02",
+      "contract": "LPC",
+      "layer": 2,
+      "name": "No direct API bypass",
+      "check": "All LLM calls must route through stardance-llm-service — no direct api.anthropic.com calls",
+      "applies_to": "all_LLM_active_surfaces",
+      "severity": "block"
+    },
+
+    {
+      "id": "VG-LIC-01",
+      "contract": "LIC",
+      "layer": 3,
+      "name": "calling_system declared",
+      "check": "Every LLM invocation must declare calling_system field",
+      "applies_to": "all_LLM_integrated_systems",
+      "severity": "block"
+    },
+    {
+      "id": "VG-LIC-02",
+      "contract": "LIC",
+      "layer": 3,
+      "name": "DRJ gate before first LLM call",
+      "check": "DRJ gate must be confirmed before any new system makes its first LLM call",
+      "applies_to": "new_LLM_integrated_systems",
+      "severity": "block",
+      "auto_checkable": false,
+      "requires": "drj_confirmation_record"
+    },
+
+    {
+      "id": "VG-SVS-01",
+      "contract": "SVS",
+      "layer": 4,
+      "name": "Five visibility requirements",
+      "check": "All five SVS visibility requirements must be exposed on operator-facing surfaces",
+      "requirements": [
+        "What signals were used",
+        "What canon was applied",
+        "What decision was made",
+        "What confidence exists",
+        "What will be learned"
+      ],
+      "applies_to": "all_surfaces",
+      "severity": "block"
+    },
+    {
+      "id": "VG-SVS-02",
+      "contract": "SVS",
+      "layer": 4,
+      "name": "Hidden state violation",
+      "check": "No state may be hidden, inferred, or presented ambiguously",
+      "applies_to": "all_surfaces",
+      "severity": "block"
+    },
+
+    {
+      "id": "VG-CBC-01",
+      "contract": "CBC",
+      "layer": 6,
+      "name": "Canonical type vocabulary",
+      "check": "All components must use only the 13 canonical CBC types",
+      "canonical_types": ["hero","text_block","image","video","cta","form","offer_stack","social_proof","testimonial","faq","diagnostic_entry","trust_bar","content_grid"],
+      "component_registry": "registry/component_registry.json",
+      "applies_to": "all_surfaces",
+      "severity": "block"
+    },
+    {
+      "id": "VG-CBC-02",
+      "contract": "CBC",
+      "layer": 6,
+      "name": "Design doctrine compliance",
+      "check": "Surface must demonstrate: Clarity → Flow → Delight → Conviction",
+      "applies_to": "all_surfaces",
+      "severity": "flag",
+      "auto_checkable": false,
+      "requires": "uat_review"
+    },
+    {
+      "id": "VG-CBC-03",
+      "contract": "CBC",
+      "note": "R2 ruling 2026-05-05",
+      "name": "UIS/CBC boundary respected",
+      "check": "CBC governs behaviour semantics only. UIS governs aesthetic expression. No cross-layer contamination.",
+      "applies_to": "all_surfaces",
+      "severity": "flag"
+    },
+
+    {
+      "id": "VG-TIS-01",
+      "contract": "TIS",
+      "layer": 7,
+      "name": "Confidence display",
+      "check": "FLAG-B01 score and band (HIGH/MEDIUM/LOW) must be visible. 0.92 cap acknowledged.",
+      "applies_to": "all_operator_surfaces",
+      "severity": "block"
+    },
+    {
+      "id": "VG-TIS-02",
+      "contract": "TIS",
+      "layer": 7,
+      "name": "Ethics gate visibility",
+      "check": "Ethics gate blocks must identify category (VS-001/002/003 or PCC-001/002/003/004) — not just 'blocked'",
+      "applies_to": "all_LLM_active_surfaces",
+      "severity": "block"
+    },
+
+    {
+      "id": "VG-UIS-01",
+      "contract": "UIS",
+      "layer": 8,
+      "name": "Theme declaration",
+      "check": "Surface must declare a valid theme from theme_registry.json",
+      "valid_themes": ["vega", "nova", "hydra"],
+      "theme_registry": "registry/theme_registry.json",
+      "applies_to": "all_surfaces",
+      "severity": "block"
+    },
+    {
+      "id": "VG-UIS-02",
+      "contract": "UIS",
+      "layer": 8,
+      "name": "Mode declaration",
+      "check": "Surface must declare a valid mode: vibe | dark | light. 'classic' is deprecated.",
+      "valid_modes": ["vibe", "dark", "light"],
+      "deprecated_modes": ["classic"],
+      "applies_to": "all_surfaces",
+      "severity": "block",
+      "version_updated": "1.0.1"
+    },
+    {
+      "id": "VG-UIS-03",
+      "contract": "UIS",
+      "layer": 8,
+      "name": "Grid rule compliance",
+      "check": "Theme count must equal mode count. 3x3 canonical.",
+      "applies_to": "surfaces_with_theme_switcher",
+      "severity": "block"
+    },
+    {
+      "id": "VG-UIS-04",
+      "contract": "UIS",
+      "layer": 8,
+      "name": "Creative differentiation mandate",
+      "check": "Surface must meet 3 of 4 criteria: Motion, Depth, Character, Memory",
+      "applies_to": "all_operator_facing_and_creator_facing_surfaces",
+      "severity": "block",
+      "auto_checkable": false,
+      "requires": "uat_review",
+      "vanilla_policy": "Vanilla is a UXC violation"
+    },
+    {
+      "id": "VG-UIS-05",
+      "contract": "UIS",
+      "layer": 8,
+      "name": "Tier 3A gate",
+      "check": "Cinematic hero (CBC-01) required for all creator-facing surfaces. DRJ approval required.",
+      "applies_to": "creator_facing_surfaces",
+      "severity": "block",
+      "auto_checkable": false,
+      "requires": "drj_tier3a_approval"
+    }
+  ],
+
+  "severity_definitions": {
+    "block": "Surface cannot proceed to next lifecycle state without resolving this gate",
+    "flag": "Surface is flagged for review but may proceed. Must be resolved before drj_locked state.",
+    "note": "Informational only. Does not prevent progression."
+  }
+}

@@ -1,0 +1,141 @@
+{
+  "registry": "component_registry",
+  "version": "1.0.0",
+  "uxc_version": "1.0.1",
+  "date": "2026-05-05",
+  "total_types": 13,
+  "description": "All 13 CBC canonical component types. Activation Surface reads this for UIS/CBC selection and validation.",
+
+  "components": [
+    {
+      "id": "CBC-01",
+      "type": "hero",
+      "name": "Hero",
+      "description": "Primary above-the-fold statement. Headline, subhead, primary CTA. First impression surface.",
+      "applies_to": ["all_surfaces"],
+      "tier_3a_required": true,
+      "tier_3a_condition": "creator_facing surfaces only",
+      "tier_3a_reference": "surfaces/approved/docente-cinematic-hero.html",
+      "creative_mandate": "Motion + Depth + Character + Memory all required for creator-facing"
+    },
+    {
+      "id": "CBC-02",
+      "type": "text_block",
+      "name": "Text Block",
+      "description": "Body content, explanatory copy, supporting narrative. The workhorse of information delivery.",
+      "applies_to": ["all_surfaces"],
+      "tier_3a_required": false
+    },
+    {
+      "id": "CBC-03",
+      "type": "image",
+      "name": "Image",
+      "description": "Static visual asset. Always carries alt text and loading state.",
+      "applies_to": ["all_surfaces"],
+      "tier_3a_required": false
+    },
+    {
+      "id": "CBC-04",
+      "type": "video",
+      "name": "Video",
+      "description": "Embedded video with play state, poster frame, and fallback. Supports autoplay rules.",
+      "applies_to": ["SD", "Docente"],
+      "tier_3a_required": false,
+      "tier_3a_optional": "Cinematic chapter player"
+    },
+    {
+      "id": "CBC-05",
+      "type": "cta",
+      "name": "Call to Action",
+      "description": "Primary conversion trigger. Carries intent signal to EDGE. One per surface recommended.",
+      "applies_to": ["all_surfaces"],
+      "tier_3a_required": true,
+      "tier_3a_condition": "Motion and depth on hover required for all surfaces"
+    },
+    {
+      "id": "CBC-06",
+      "type": "form",
+      "name": "Form",
+      "description": "Input collection. Diagnostic entry, lead capture, subscription. Connected to validation state.",
+      "applies_to": ["all_surfaces"],
+      "tier_3a_required": false
+    },
+    {
+      "id": "CBC-07",
+      "type": "offer_stack",
+      "name": "Offer Stack",
+      "description": "Structured value proposition. Tier comparison, pricing, feature matrix. Decision-enabling layout.",
+      "applies_to": ["SD", "Docente"],
+      "tier_3a_required": false
+    },
+    {
+      "id": "CBC-08",
+      "type": "social_proof",
+      "name": "Social Proof",
+      "description": "Aggregated trust signals. Review counts, logos, certification marks. Validates credibility.",
+      "applies_to": ["all_surfaces"],
+      "tier_3a_required": false
+    },
+    {
+      "id": "CBC-09",
+      "type": "testimonial",
+      "name": "Testimonial",
+      "description": "Individual attributed statement. Quote, name, role, optional image. Human trust anchor.",
+      "applies_to": ["all_surfaces"],
+      "tier_3a_required": false
+    },
+    {
+      "id": "CBC-10",
+      "type": "faq",
+      "name": "FAQ",
+      "description": "Structured Q&A. Objection handling, clarification, decision support. Collapsible pattern.",
+      "applies_to": ["all_surfaces"],
+      "tier_3a_required": false
+    },
+    {
+      "id": "CBC-11",
+      "type": "diagnostic_entry",
+      "name": "Diagnostic Entry",
+      "description": "Signal collection point. Feeds SCOUT scoring. Qualification gateway before conversion.",
+      "applies_to": ["SD", "MO-BASE"],
+      "tier_3a_required": false,
+      "tier_3a_optional": "Intelligence network visualiser",
+      "intelligence_pipeline": "Feeds SCOUT signal ingestion"
+    },
+    {
+      "id": "CBC-12",
+      "type": "trust_bar",
+      "name": "Trust Bar",
+      "description": "Persistent trust strip. Security signals, guarantees, accreditations. Reduces friction at CTA.",
+      "applies_to": ["all_surfaces"],
+      "tier_3a_required": false
+    },
+    {
+      "id": "CBC-13",
+      "type": "content_grid",
+      "name": "Content Grid",
+      "description": "Structured multi-item layout. Article cards, course listings, signal arrays. Repeatable pattern.",
+      "applies_to": ["SD", "Docente", "MO-BASE"],
+      "tier_3a_required": false
+    }
+  ],
+
+  "tier_structure": {
+    "tier_1": {
+      "label": "Canonical — required on every conversion surface",
+      "components": ["CBC-01","CBC-02","CBC-03","CBC-05","CBC-06","CBC-08","CBC-09","CBC-10","CBC-12"]
+    },
+    "tier_2": {
+      "label": "Platform-specific — context-dependent",
+      "components": ["CBC-04","CBC-07","CBC-11","CBC-13"]
+    },
+    "tier_3A": {
+      "label": "Cinematic and immersive — Activation Surface governed",
+      "note": "Requires DRJ ruling to unlock for any surface"
+    },
+    "tier_3B": {
+      "label": "Platform infrastructure — mobile, analytics, SEO, AI-native",
+      "note": "Future dispatch required"
+    }
+  }
+}

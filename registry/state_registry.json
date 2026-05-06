@@ -1,0 +1,162 @@
+{
+  "registry": "state_registry",
+  "version": "1.0.0",
+  "uxc_version": "1.0.1",
+  "date": "2026-05-05",
+  "description": "IMS execution state machine and surface lifecycle states. Activation Surface reads this to track and validate surface progression.",
+
+  "ims_states": {
+    "description": "Canonical execution state machine — IMS Layer 1",
+    "scope": "operator_initiated, LLM_driven, surface_level_workflows",
+    "states": [
+      {
+        "id": "idle",
+        "label": "Idle",
+        "type": "start",
+        "description": "System is ready and awaiting input",
+        "transitions_to": ["validating"],
+        "required_fields": ["state"]
+      },
+      {
+        "id": "validating",
+        "label": "Validating",
+        "type": "intermediate",
+        "description": "Input is being validated against UXC contracts",
+        "transitions_to": ["processing", "failed"],
+        "required_fields": ["state", "validation_status"]
+      },
+      {
+        "id": "processing",
+        "label": "Processing",
+        "type": "intermediate",
+        "description": "Execution is in progress",
+        "transitions_to": ["complete", "partial_complete", "failed"],
+        "required_fields": ["state", "confidence"]
+      },
+      {
+        "id": "complete",
+        "label": "Complete",
+        "type": "terminal_success",
+        "description": "Execution completed successfully",
+        "required_fields": ["state", "confidence", "next_action"]
+      },
+      {
+        "id": "partial_complete",
+        "label": "Partial Complete",
+        "type": "terminal_partial",
+        "description": "Execution completed with partial results",
+        "required_fields": ["state", "confidence", "validation_status", "next_action"]
+      },
+      {
+        "id": "failed",
+        "label": "Failed",
+        "type": "terminal_failure",
+        "description": "Execution failed — operator must be informed of reason",
+        "required_fields": ["state", "validation_status", "next_action"]
+      }
+    ],
+    "invalid_transition_response": "block",
+    "missing_state_response": "block",
+    "missing_confidence_response": "block"
+  },
+
+  "surface_lifecycle_states": {
+    "description": "Surface lifecycle state machine — governs all surfaces through the Activation Surface control plane",
+    "source": "PTC binding direction 2026-05-05",
+    "states": [
+      {
+        "id": "brief_created",
+        "label": "Brief Created",
+        "sequence": 1,
+        "description": "UXC Brief has been created. Surface type, CBC slot, UIS theme, and mode declared.",
+        "required_fields": ["surface_type", "product", "cbc_primary", "uis_theme", "uis_mode", "tier_3a_required"],
+        "transitions_to": ["canon_checked"],
+        "gate": "UXC Brief Template must be complete"
+      },
+      {
+        "id": "canon_checked",
+        "label": "Canon Checked",
+        "sequence": 2,
+        "description": "Surface brief validated against UXC contracts and registries.",
+        "required_checks": ["contract_registry", "component_registry", "theme_registry"],
+        "transitions_to": ["build_ready", "brief_created"],
+        "gate": "All UXC contract requirements must pass validation"
+      },
+      {
+        "id": "build_ready",
+        "label": "Build Ready",
+        "sequence": 3,
+        "description": "Surface is cleared for Claude-first build. UXC Brief locked.",
+        "transitions_to": ["in_build"],
+        "gate": "canon_checked must be complete. DRJ approval for Tier 3A."
+      },
+      {
+        "id": "in_build",
+        "label": "In Build",
+        "sequence": 4,
+        "description": "Claude-first build in progress. Inline iteration phase.",
+        "transitions_to": ["uat_active"],
+        "gate": "Build artifact must be generated"
+      },
+      {
+        "id": "uat_active",
+        "label": "UAT Active",
+        "sequence": 5,
+        "description": "Surface deployed to UAT relay. Stakeholder testing phase.",
+        "transitions_to": ["uat_passed", "in_build"],
+        "gate": "UAT relay must be live"
+      },
+      {
+        "id": "uat_passed",
+        "label": "UAT Passed",
+        "sequence": 6,
+        "description": "All UAT criteria confirmed by stakeholder.",
+        "transitions_to": ["drj_locked"],
+        "gate": "All UAT criteria must have explicit PASS confirmation"
+      },
+      {
+        "id": "drj_locked",
+        "label": "DRJ Locked",
+        "sequence": 7,
+        "description": "DRJ has locked the surface. No further changes without DRJ ruling.",
+        "transitions_to": ["archived", "deployed"],
+        "gate": "DRJ explicit lock record required"
+      },
+      {
+        "id": "archived",
+        "label": "Archived",
+        "sequence": 8,
+        "description": "Surface committed to stardance-uxc-canon/surfaces/approved/. Preserved canonical state.",
+        "required_action": "Commit to surfaces/approved/ in stardance-uxc-canon",
+        "transitions_to": ["deployed"]
+      },
+      {
+        "id": "deployed",
+        "label": "Deployed",
+        "sequence": 9,
+        "description": "Surface is live in production.",
+        "terminal": true
+      }
+    ],
+
+    "gates": {
+      "before_activation_surface_v1": {
+        "allowed": [
+          "theme_exploration_sessions",
+          "copy_content_refinement",
+          "asset_prep",
+          "non_build_planning",
+          "registry_preparation"
+        ],
+        "not_allowed": [
+          "new_production_surface_build",
+          "new_claude_first_deployable_artifact",
+          "surface_uat_relay_launch",
+          "surface_archive_lock",
+          "surface_deployment"
+        ],
+        "source": "PTC binding direction 2026-05-05"
+      }
+    }
+  }
+}

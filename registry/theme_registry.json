@@ -1,0 +1,142 @@
+{
+  "registry": "theme_registry",
+  "version": "1.0.1",
+  "uxc_version": "1.0.1",
+  "date": "2026-05-05",
+  "description": "All themes, modes, token references and tooltip rules. Activation Surface reads this for UIS compliance validation.",
+
+  "uis_rules": {
+    "grid_rule": "Theme count must equal mode count",
+    "canonical_grid": "3x3",
+    "default_theme": "vega",
+    "default_mode": "vibe",
+    "naming_convention": "Astronomical — one naming system per product",
+    "hover_requirement": "Theme buttons must accent to primary colour on hover",
+    "tooltip_positioning": "above button · left-anchored · extends rightward · white-space:nowrap · text-transform:none",
+    "vanilla_policy": "Vanilla is a UXC violation",
+    "creative_mandate": {
+      "requirement": "3 of 4 criteria required for operator-facing and creator-facing surfaces",
+      "criteria": ["Motion", "Depth", "Character", "Memory"]
+    }
+  },
+
+  "modes": {
+    "vibe": {
+      "label": "Vibe",
+      "css_key": "vibe",
+      "deprecated_alias": "classic",
+      "tooltip": "Amber glow · ideas first",
+      "character": "Warm · editorial · creative",
+      "status": "canonical",
+      "version_added": "1.0.0",
+      "key_updated": "1.0.1"
+    },
+    "dark": {
+      "label": "Dark",
+      "css_key": "dark",
+      "tooltip": "Night sky · pure signal",
+      "character": "Operator · high contrast · low-light",
+      "status": "canonical",
+      "version_added": "1.0.0"
+    },
+    "light": {
+      "label": "Light",
+      "css_key": "light",
+      "tooltip": "Full spectrum · nothing hidden",
+      "character": "Open · full visibility · review",
+      "status": "canonical",
+      "version_added": "1.0.0"
+    },
+    "classic": {
+      "label": "DEPRECATED",
+      "css_key": "classic",
+      "status": "deprecated",
+      "deprecated_in": "1.0.1",
+      "replaced_by": "vibe",
+      "note": "Alias layer maintained for backward compatibility only. No surface may depend on classic as canonical key after v1.0.1."
+    }
+  },
+
+  "themes": {
+    "vega": {
+      "name": "Vega",
+      "status": "locked",
+      "uat_date": "2026-05-05",
+      "primary": "#30ABCA",
+      "hover_preview": "#30ABCA",
+      "fonts": { "display": "DM Sans", "body": "DM Mono" },
+      "tooltip": "Fifth brightest star in the night sky",
+      "astronomical_fact": "Fifth brightest star in the night sky, in the Lyra constellation",
+      "products": ["SD"],
+      "default_for": ["SD"],
+      "token_file": "tokens/sd-tokens.css",
+      "token_selector": "[data-palette=\"vega\"]",
+      "modes": {
+        "dark":  { "bg": "#050f14", "surface": "#081520", "elevated": "#0d1e2d", "primary": "#30ABCA" },
+        "light": { "bg": "#f0f9ff", "surface": "#ffffff",  "elevated": "#e0f2fe", "primary": "#30ABCA" },
+        "vibe":  { "bg": "#faf7f2", "surface": "#f5f0e8",  "elevated": "#efe9dc", "primary": "#30ABCA" }
+      }
+    },
+    "nova": {
+      "name": "Nova",
+      "status": "locked",
+      "uat_date": "2026-05-05",
+      "primary": "#E8751A",
+      "hover_preview": "#E8751A",
+      "fonts": { "display": "Syne", "body": "IBM Plex Mono" },
+      "tooltip": "A stellar explosion from a white dwarf star",
+      "astronomical_fact": "A sudden brightness increase from a star in a binary system",
+      "products": ["SD"],
+      "token_selector": "[data-palette=\"nova\"]",
+      "modes": {
+        "dark":  { "bg": "#07070d", "surface": "#0d0d16", "elevated": "#161923", "primary": "#E8751A" },
+        "light": { "bg": "#f7f6f2", "surface": "#ffffff",  "elevated": "#f0ede8", "primary": "#E8751A" },
+        "vibe":  { "bg": "#faf7f2", "surface": "#f5f0e8",  "elevated": "#efe9dc", "primary": "#E8751A" }
+      }
+    },
+    "hydra": {
+      "name": "Hydra",
+      "status": "locked",
+      "uat_date": "2026-05-05",
+      "primary_dark": "#C8B89A",
+      "primary_light": "#1A1A1A",
+      "hover_preview": "#C8B89A",
+      "fonts": { "display": "Syne", "body": "IBM Plex Mono" },
+      "tooltip": "The outermost moon of Pluto",
+      "astronomical_fact": "Outermost known moon of Pluto, discovered in 2005",
+      "products": ["SD"],
+      "token_selector": "[data-palette=\"hydra\"]",
+      "modes": {
+        "dark":  { "bg": "#0A0A0A", "surface": "#141414", "elevated": "#1E1E1E", "primary": "#C8B89A" },
+        "light": { "bg": "#f4f1ea", "surface": "#faf8f4", "elevated": "#ede8de", "primary": "#1A1A1A" },
+        "vibe":  { "bg": "#f0ebe0", "surface": "#e8e1d0", "elevated": "#dfd7c4", "primary": "#1A1A1A" }
+      }
+    }
+  },
+
+  "deferred_themes": {
+    "lyra": {
+      "name": "Lyra",
+      "primary": "#1F4E8C",
+      "fonts": { "display": "Cormorant Garamond", "body": "DM Mono" },
+      "status": "deferred",
+      "reason": "Blue proximity with Vega. Stronger fit for Docente.",
+      "note": "Vega lives in the Lyra constellation — internal coherence preserved"
+    }
+  },
+
+  "font_pairs_locked": {
+    "sd_operator": {
+      "display": "DM Sans",
+      "body": "DM Mono",
+      "theme": "vega",
+      "locked_date": "2026-05-05"
+    },
+    "docente_editorial": {
+      "display": "Cormorant Garamond",
+      "body": "DM Sans",
+      "locked_date": "2026-05-05",
+      "note": "Docente cinematic hero font pair. Fuji Violet theme candidate."
+    }
+  }
+}

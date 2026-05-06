@@ -1,0 +1,127 @@
+{
+  "registry": "contract_registry",
+  "version": "1.0.0",
+  "uxc_version": "1.0.1",
+  "date": "2026-05-05",
+  "description": "All 8 UXC contract layer definitions. The Activation Surface reads this to validate surface compliance.",
+
+  "contracts": [
+    {
+      "id": "IMS",
+      "layer": 1,
+      "name": "Interaction Model Standard",
+      "status": "required",
+      "scope": "operator_initiated, LLM_driven, surface_level_workflows",
+      "governs": "Canonical execution state machine",
+      "enforcement": "runtime",
+      "states": ["idle", "validating", "processing", "complete", "partial_complete", "failed"],
+      "required_fields": ["state", "confidence", "validation_status", "next_action"],
+      "violation_response": "block",
+      "applies_to": ["all_operator_surfaces", "all_LLM_driven_surfaces"]
+    },
+    {
+      "id": "LPC",
+      "layer": 2,
+      "name": "LLM Behaviour Contract",
+      "status": "required",
+      "governs": "LLM output structure and prompt governance",
+      "enforcement": "build_and_runtime",
+      "required_output_structure": ["what_happened", "why_it_matters", "what_to_do_next"],
+      "routing_rule": "All LLM calls must route through stardance-llm-service",
+      "violation_response": "block",
+      "applies_to": ["all_LLM_active_surfaces"]
+    },
+    {
+      "id": "LIC",
+      "layer": 3,
+      "name": "LLM Integration Contract",
+      "status": "required",
+      "governs": "LLM invocation rules and integration boundaries",
+      "enforcement": "build",
+      "required_fields": ["calling_system", "task_type", "prompt_id"],
+      "gate": "DRJ gate required before first LLM call on any new system",
+      "violation_response": "block",
+      "applies_to": ["all_LLM_integrated_systems"]
+    },
+    {
+      "id": "SVS",
+      "layer": 4,
+      "name": "State Visibility Standard",
+      "status": "required",
+      "governs": "Execution state and confidence surfaced to operator",
+      "enforcement": "runtime",
+      "five_visibility_requirements": [
+        "What signals were used",
+        "What canon was applied",
+        "What decision was made",
+        "What confidence exists",
+        "What will be learned"
+      ],
+      "violation_response": "block",
+      "applies_to": ["all_surfaces"]
+    },
+    {
+      "id": "SNC",
+      "layer": 5,
+      "name": "System Navigation Contract",
+      "status": "required",
+      "governs": "Navigation structure and context persistence across surfaces",
+      "enforcement": "build",
+      "requirements": [
+        "Navigation must not diverge across operator-facing surfaces",
+        "Context must persist across navigation transitions"
+      ],
+      "violation_response": "flag",
+      "applies_to": ["all_operator_surfaces"]
+    },
+    {
+      "id": "CBC",
+      "layer": 6,
+      "name": "Component Behaviour Contract",
+      "status": "required",
+      "governs": "Component behaviour semantics — hover states, interaction patterns, data binding, rendering",
+      "note": "CBC owns behaviour semantics. UIS owns aesthetic expression. (PTC R2 ruling 2026-05-05)",
+      "enforcement": "build",
+      "canonical_types": 13,
+      "component_registry": "registry/component_registry.json",
+      "design_doctrine": "Clarity → Flow → Delight → Conviction",
+      "violation_response": "block",
+      "applies_to": ["all_surfaces"]
+    },
+    {
+      "id": "TIS",
+      "layer": 7,
+      "name": "Trust & Insight Surface",
+      "status": "required",
+      "governs": "Confidence, validation status, and trust signals surfaced to operator",
+      "enforcement": "runtime",
+      "requirements": [
+        "FLAG-B01 score + band (HIGH/MEDIUM/LOW) must be visible",
+        "0.92 confidence cap must be acknowledged",
+        "Block/Flag/Note surfaced with rationale",
+        "Ethics Gate trigger must identify category, not just 'blocked'"
+      ],
+      "violation_response": "block",
+      "applies_to": ["all_operator_surfaces", "all_LLM_active_surfaces"]
+    },
+    {
+      "id": "UIS",
+      "layer": 8,
+      "name": "UI Standard",
+      "status": "required",
+      "governs": "Theme system, mode system, interaction surface, creative differentiation mandate",
+      "note": "UIS owns aesthetic expression. CBC owns behaviour semantics. (PTC R2 ruling 2026-05-05)",
+      "enforcement": "build",
+      "toolkit_repo": "https://github.com/STDC26/stardance-uxc-canon",
+      "theme_registry": "registry/theme_registry.json",
+      "grid_rule": "Theme count must equal mode count. 3x3 canonical.",
+      "default_theme": "vega",
+      "default_mode": "vibe",
+      "creative_mandate": "3 of 4 criteria required: Motion, Depth, Character, Memory",
+      "vanilla_policy": "Vanilla is a UXC violation",
+      "version": "1.0.1",
+      "violation_response": "block",
+      "applies_to": ["all_surfaces"]
+    }
+  ]
+}
