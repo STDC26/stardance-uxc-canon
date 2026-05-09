@@ -1,0 +1,28 @@
+/* Orbit State Color Tokens
+ * Status: CANONICAL · LOCKED · BINDING
+ * Authority: SD-ORBIT-SYSTEM-CANON v1.0
+ *
+ * DO NOT modify these values.
+ * Changes require DRJ approval and a version bump. */
+
+:root {
+  /* Signal & Sense */
+  --orbit-color-signal-sense:           #0891B2;
+  --orbit-bg-signal-sense:              #164e63;
+
+  /* Interpret & Intent */
+  --orbit-color-interpret-intent:       #0EA5E9;
+  --orbit-bg-interpret-intent:          #0c4a6e;
+
+  /* Craft & Refine */
+  --orbit-color-craft-refine:           #A855F7;
+  --orbit-bg-craft-refine:              #581c87;
+
+  /* Orchestrate & Amplify */
+  --orbit-color-orchestrate-amplify:    #FBBF24;
+  --orbit-bg-orchestrate-amplify:       #78350f;
+
+  /* Adapt & Evolve */
+  --orbit-color-adapt-evolve:           #10B981;
+  --orbit-bg-adapt-evolve:              #064e3b;
+}

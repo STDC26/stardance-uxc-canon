@@ -1,0 +1,128 @@
+/* OrbitFrame v0.1 — Minimal Styling
+ * Status: REFERENCE IMPLEMENTATION
+ * No animation dependencies. Static-first.
+ * Adapt to your production design token system. */
+
+.orbit-frame {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  font-family: var(--sd-font-mono, 'IBM Plex Mono', monospace);
+  color: #ffffff;
+}
+
+/* Responsive variants */
+.orbit-frame--desktop { max-width: 1440px; margin: 0 auto; }
+.orbit-frame--tablet  { max-width: 768px;  margin: 0 auto; }
+.orbit-frame--mobile  { max-width: 375px;  margin: 0 auto; }
+
+/* Header */
+.orbit-header {
+  padding: 16px 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.orbit-header-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.stardance-logo-mini {
+  flex-shrink: 0;
+}
+
+.orbit-state-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.orbit-state-meaning {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.60);
+  margin: 0 0 4px;
+  line-height: 1.5;
+}
+
+.orbit-recursive-cue {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.40);
+  font-style: italic;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Orbit visual */
+.orbit-visual-container {
+  position: relative;
+  width: 200px;
+  height: 200px;
+  margin: 24px auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.orbit-center {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.90);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2;
+}
+
+.orbit-rings {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.orbit-state-dot {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.40);
+  z-index: 3;
+}
+
+.dot-label {
+  font-size: 7px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: currentColor;
+  text-align: center;
+  line-height: 1.2;
+}
+
+/* Content slot */
+.orbit-content {
+  flex: 1;
+  padding: 24px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .orbit-header  { padding: 12px 16px; }
+  .orbit-content { padding: 16px; }
+  .orbit-visual-container { width: 160px; height: 160px; }
+}
+
+@media (max-width: 375px) {
+  .orbit-visual-container { display: none; }
+}
