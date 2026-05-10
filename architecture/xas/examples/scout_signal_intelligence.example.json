@@ -1,0 +1,104 @@
+{
+  "artifact": "SCOUT_REFERENCE_EXTENSION",
+  "version": "v0.1.1",
+  "purpose": "Example Surface Extension for XAS v0.1.1. Shows how domain-specific logic is defined in the Surface Extension layer, not in XAS Universal Spec.",
+  "extension_type": "SCOUT_SIGNAL_INTELLIGENCE",
+  "runtime_role": "signal_observatory",
+  "orbit_state": "signal_sense",
+  "owner": "SCOUT Product Team",
+  "note": "This is a REFERENCE FIXTURE showing the Surface Extension pattern. Actual SCOUT product surface logic is maintained by the SCOUT team.",
+  "data_objects": [
+    "Signal",
+    "SignalCluster",
+    "InterpretationBlock",
+    "EvidenceTrace",
+    "ConfidenceBlock",
+    "DecisionRecommendation",
+    "ActionRoute"
+  ],
+  "governed_actions": [
+    "watch",
+    "investigate",
+    "escalate",
+    "suppress",
+    "export",
+    "trigger_research",
+    "route_to_interpretation",
+    "mark_learning_signal"
+  ],
+  "decision_model": {
+    "primary_hierarchy": [
+      "decision",
+      "context",
+      "evidence"
+    ],
+    "operator_questions": [
+      "What am I looking at?",
+      "What does it mean?",
+      "What should I do?"
+    ]
+  },
+  "confidence_model": {
+    "required": true,
+    "display": "ConfidenceBlock",
+    "fields": [
+      "confidence",
+      "risk",
+      "signal_strength",
+      "urgency",
+      "recommended_posture"
+    ]
+  },
+  "evidence_model": {
+    "required": true,
+    "display": "EvidenceTrace",
+    "fields": [
+      "signals_used",
+      "source_count",
+      "canon_applied",
+      "decision_made",
+      "learning_signal"
+    ]
+  },
+  "action_permissions": [
+    {
+      "action": "escalate",
+      "founder": "write",
+      "analyst": "partial",
+      "client": "hidden"
+    },
+    {
+      "action": "suppress",
+      "founder": "write",
+      "analyst": "partial",
+      "client": "hidden"
+    },
+    {
+      "action": "export",
+      "founder": "write",
+      "analyst": "write",
+      "client": "read"
+    }
+  ],
+  "llm_requirements": {
+    "lic_posture": "active",
+    "llm_output_surfaces": [
+      "InterpretationBlock",
+      "DecisionRecommendation"
+    ],
+    "must_not_mutate_scores": true
+  },
+  "validation_rules": [
+    "No dashboard-first layout",
+    "No progress bars",
+    "No workflow steps",
+    "No infrastructure-first labels",
+    "All governed actions require confidence visibility",
+    "All interpretive outputs require CQX metadata"
+  ],
+  "signature": {
+    "extension_type_valid": true,
+    "all_required_fields_present": true,
+    "validates_against_xas_gates": true
+  }
+}
