@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SCOUT Signal Observatory — Preview</title>
+  <style>
+    :root {
+      --bg:#050f14;--surface:#081520;--elevated:#0d1e2d;
+      --border:rgba(8,145,178,0.18);--text:#e0f0f8;--text-2:#7090a0;
+      --accent:#30ABCA;--accent-dim:rgba(8,145,178,0.15);
+      --high:#10b981;--medium:#f59e0b;--low:#ef4444;
+      --r:8px;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{background:var(--bg);color:var(--text);font-family:'DM Mono',monospace;font-size:13px;padding:20px}
+    h1{font-size:18px;font-weight:600;margin-bottom:4px}
+    .orbit{display:flex;align-items:center;gap:10px;margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid var(--border)}
+    .orbit-label{font-size:13px;font-weight:600;color:var(--accent)}
+    .orbit-sub{font-size:10px;color:var(--text-2)}
+    .nav{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0 24px}
+    .nav button{padding:7px 14px;border-radius:var(--r);border:1px solid var(--border);background:transparent;color:var(--text-2);cursor:pointer;font-size:12px;font-family:inherit}
+    .nav button.active{border-color:var(--accent);color:var(--accent);background:var(--accent-dim)}
+    .nav button:hover{border-color:var(--accent);color:var(--text)}
+    .card{border:1px solid var(--border);border-radius:12px;padding:20px;background:var(--surface);max-width:800px}
+    .state-badge{display:inline-flex;align-items:center;gap:6px;font-size:12px;margin-bottom:12px}
+    .cqx-el{border-left:3px solid #1e3a5f;padding-left:14px;margin-bottom:14px}
+    .cqx-el.meaning{border-left-color:#1e40af}
+    .cqx-el.action{border-left-color:#065f46}
+    .cqx-label{font-size:10px;color:var(--text-2);text-transform:uppercase;letter-spacing:.1em;margin-bottom:5px}
+    .cqx-content{font-size:13px;color:#d1d5db;line-height:1.6}
+    .conf-box{border-radius:var(--r);padding:10px 14px;margin:8px 0}
+    .conf-high{background:#064e3b}.conf-medium{background:#451a03}.conf-low{background:#450a0a}
+    .conf-label{font-weight:600;font-size:14px}
+    .conf-bar-bg{background:#1f2937;border-radius:3px;height:4px;margin:6px 0}
+    .conf-bar{height:100%;border-radius:3px}
+    .warn{background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.3);border-radius:var(--r);color:var(--medium);padding:10px 14px;margin-bottom:14px;font-size:12px}
+    .err{background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.2);border-radius:12px;padding:24px;text-align:center}
+    .actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+    .action-btn{padding:6px 12px;font-size:12px;border-radius:5px;border:1px solid var(--accent);background:var(--accent-dim);color:var(--accent);cursor:pointer;font-family:inherit}
+    .action-btn.dim{border-color:#374151;background:transparent;color:#6b7280;cursor:not-allowed}
+    .reset-btn{padding:7px 14px;font-size:12px;border-radius:5px;border:1px solid #374151;background:transparent;color:#9ca3af;cursor:pointer;margin-top:12px;font-family:inherit}
+    .spinner{display:inline-block;animation:spin 1.2s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .mono{font-family:monospace;font-size:12px;color:#d1d5db;word-break:break-all;background:#0a0e1a;border-radius:var(--r);padding:10px;margin:8px 0}
+    .idle-input{width:100%;background:var(--elevated);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-family:inherit;font-size:13px;padding:12px;resize:vertical;margin-bottom:10px}
+    .submit-btn{padding:8px 18px;border-radius:var(--r);border:1px solid var(--accent);background:var(--accent-dim);color:var(--accent);cursor:pointer;font-size:13px;font-family:inherit}
+    .ev-item{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #1f2937;font-size:12px;color:#9ca3af}
+    .ev-pct{color:var(--high)}
+  </style>
+</head>
+<body>
+
+<div class="orbit">
+  <svg width="28" height="28" viewBox="0 0 28 28" id="orbit-svg">
+    <circle cx="14" cy="14" r="12" fill="none" stroke="#30ABCA" stroke-width="1"/>
+    <circle cx="14" cy="14" r="7" fill="none" stroke="#30ABCA" stroke-width="1" opacity="0.6"/>
+    <circle cx="14" cy="14" r="3" fill="#30ABCA"/>
+  </svg>
+  <div>
+    <div class="orbit-label" id="orbit-label">Signal Observatory</div>
+    <div class="orbit-sub">OrbitFrame v0.1 · signal_sense</div>
+  </div>
+  <div style="margin-left:auto">
+    <h1>SCOUT Signal Observatory</h1>
+    <div id="state-badge" class="state-badge" style="color:#6b7280">○ Ready</div>
+  </div>
+</div>
+
+<div class="nav">
+  <button onclick="showState('idle')" class="active" id="btn-idle">Idle</button>
+  <button onclick="showState('validating')" id="btn-validating">Validating</button>
+  <button onclick="showState('processing')" id="btn-processing">Processing</button>
+  <button onclick="showState('complete')" id="btn-complete">Complete</button>
+  <button onclick="showState('partial_complete')" id="btn-partial_complete">Partial</button>
+  <button onclick="showState('failed')" id="btn-failed">Failed</button>
+</div>
+
+<div id="preview"></div>
+
+<script>
+const STATES = {
+  idle: {
+    badge: ['○','#6b7280','Ready'],
+    orbit: 'Signal Observatory',
+    html: `
+      <div class="card">
+        <div class="cqx-label" style="margin-bottom:10px">Load signal input</div>
+        <textarea class="idle-input" rows="4" placeholder="Paste signal data, event log, or observation...">anomaly detected in sector 7 baseline deviation +3.2σ</textarea>
+        <button class="submit-btn">Analyse Signal</button>
+      </div>`
+  },
+  validating: {
+    badge: ['⟳','#3b82f6','Validating'],
+    orbit: 'Validating Signal',
+    html: `
+      <div class="card" style="color:#7090a0">
+        <span class="spinner">⟳</span> Validating signal format…
+        <div style="font-size:12px;margin-top:10px;color:#6b7280">Timeout: 5s · Fail-closed guard active</div>
+      </div>`
+  },
+  processing: {
+    badge: ['◈','#8b5cf6','Processing'],
+    orbit: 'Processing Signal',
+    html: `
+      <div class="card" style="color:#7090a0">
+        <span class="spinner">◈</span> Classifying signal…
+        <div style="margin-top:12px;background:#1f2937;border-radius:3px;height:4px">
+          <div style="width:60%;height:100%;background:#8b5cf6;border-radius:3px;animation:none"></div>
+        </div>
+        <div style="font-size:12px;margin-top:8px;color:#6b7280">Extracting evidence · Deriving interpretation · Timeout: 30s</div>
+      </div>`
+  },
+  complete: {
+    badge: ['✓','#10b981','Complete'],
+    orbit: 'Signal Sense Active',
+    html: `
+      <div class="card">
+        <div class="mono">anomaly detected in sector 7 baseline deviation +3.2σ</div>
+        <!-- CQX Sequence — locked order per RC-01/RC-02 -->
+        <div style="margin-top:16px">
+          <div class="cqx-el">
+            <div class="cqx-label">1 · Context</div>
+            <div class="cqx-content">Operational signal detected in monitored environment — sector 7 under active observation.</div>
+          </div>
+          <div class="cqx-el">
+            <div class="cqx-label">2 · What's Happening</div>
+            <div class="cqx-content">Anomalous Signal — baseline deviation of +3.2σ detected at current observation window.</div>
+          </div>
+          <div class="cqx-el meaning">
+            <div class="cqx-label">3 · What It Means</div>
+            <!-- RC-02: meaning is interpretation ONLY — distinct from action -->
+            <div class="cqx-content">An unusual pattern was detected that deviates from baseline operational behaviour. Deviation at +3.2σ exceeds normal variance threshold and warrants attention.</div>
+          </div>
+          <div class="cqx-el">
+            <div class="cqx-label">4 · How Strong Is This</div>
+            <div class="conf-box conf-high">
+              <div class="conf-label" style="color:#10b981">87% — HIGH</div>
+              <div class="conf-bar-bg"><div class="conf-bar" style="width:87%;background:#10b981"></div></div>
+              <div style="font-size:11px;color:#9ca3af;margin-top:4px">Risk: Elevated — deviation may indicate system or environmental change</div>
+            </div>
+            <div style="margin-top:8px">
+              <div class="ev-item"><span>Pattern Matcher</span><span class="ev-pct">82%</span></div>
+              <div class="ev-item"><span>Baseline Comparator</span><span class="ev-pct">87%</span></div>
+            </div>
+          </div>
+          <div class="cqx-el action">
+            <div class="cqx-label">5 · What You Should Do</div>
+            <!-- RC-02: action is operator decision — distinct from meaning -->
+            <div class="cqx-content" style="color:#9ca3af;font-style:italic;margin-bottom:10px">Escalate for immediate investigation</div>
+            <div class="actions">
+              <button class="action-btn">Escalate</button>
+              <button class="action-btn">Investigate</button>
+              <button class="action-btn">Export</button>
+              <button class="action-btn dim">Suppress</button>
+            </div>
+          </div>
+        </div>
+        <button class="reset-btn">Reset</button>
+      </div>`
+  },
+  partial_complete: {
+    badge: ['◑','#f59e0b','Partial'],
+    orbit: 'Signal Sense Active',
+    html: `
+      <div class="card">
+        <div class="mono">novel signal type XJ-44 no baseline available metadata: source_id=unknown</div>
+        <div class="warn">⚠ Partial result — evidence incomplete. Review before acting.</div>
+        <div style="margin-top:8px">
+          <div class="cqx-el">
+            <div class="cqx-label">1 · Context</div>
+            <div class="cqx-content">Uncharacterised signal detected — no matching baseline in operational history.</div>
+          </div>
+          <div class="cqx-el">
+            <div class="cqx-label">2 · What's Happening</div>
+            <div class="cqx-content">Novel Signal — source XJ-44 with no prior classification record.</div>
+          </div>
+          <div class="cqx-el meaning">
+            <div class="cqx-label">3 · What It Means</div>
+            <div class="cqx-content">A previously unseen signal type was detected — no historical baseline available. Treat with caution until classified.</div>
+          </div>
+          <div class="cqx-el">
+            <div class="cqx-label">4 · How Strong Is This</div>
+            <div class="conf-box conf-medium">
+              <div class="conf-label" style="color:#f59e0b">55% — MEDIUM</div>
+              <div class="conf-bar-bg"><div class="conf-bar" style="width:55%;background:#f59e0b"></div></div>
+              <div style="font-size:11px;color:#9ca3af;margin-top:4px">Risk: Unknown — novel signal, treat with caution</div>
+            </div>
+          </div>
+          <div class="cqx-el action">
+            <div class="cqx-label">5 · What You Should Do</div>
+            <div class="cqx-content" style="color:#9ca3af;font-style:italic;margin-bottom:10px">Trigger research workflow before acting</div>
+            <div class="actions">
+              <button class="action-btn">Collect More Evidence</button>
+              <button class="action-btn">Trigger Research</button>
+              <button class="action-btn dim">Escalate (requires HIGH)</button>
+            </div>
+          </div>
+        </div>
+        <button class="reset-btn">Reset</button>
+      </div>`
+  },
+  failed: {
+    badge: ['✕','#ef4444','Failed'],
+    orbit: 'Signal Failed',
+    html: `
+      <div class="card">
+        <div class="err">
+          <div style="color:#ef4444;font-size:24px;margin-bottom:8px">✕</div>
+          <div style="font-weight:600;color:#f87171;margin-bottom:6px">Signal unclassifiable</div>
+          <div style="color:#7090a0;font-size:12px;margin-bottom:16px">Classification failed — no matching signal pattern and confidence below minimum threshold (0.45)</div>
+          <div class="actions" style="justify-content:center">
+            <button class="action-btn">Retry</button>
+            <button class="reset-btn" style="margin:0">Reset</button>
+          </div>
+        </div>
+      </div>`
+  }
+};
+
+let current = 'idle';
+
+function showState(state) {
+  current = state;
+  const s = STATES[state];
+
+  // Update orbit
+  document.getElementById('orbit-label').textContent = s.orbit;
+  const orbitActive = state === 'complete' || state === 'partial_complete';
+  document.querySelectorAll('#orbit-svg circle').forEach(c => {
+    c.setAttribute('stroke', orbitActive ? '#30ABCA' : '#374151');
+    c.setAttribute('fill', c.tagName === 'circle' && c.getAttribute('r') === '3' ? (orbitActive ? '#30ABCA' : '#6b7280') : 'none');
+  });
+
+  // Update state badge
+  const [icon, color, label] = s.badge;
+  document.getElementById('state-badge').innerHTML = `<span style="color:${color}">${icon}</span> ${label}`;
+
+  // Update nav
+  document.querySelectorAll('.nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById(`btn-${state}`).classList.add('active');
+
+  // Render content
+  document.getElementById('preview').innerHTML = s.html;
+}
+
+showState('idle');
+</script>
+</body>
+</html>

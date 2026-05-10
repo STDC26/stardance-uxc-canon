@@ -1,0 +1,7 @@
+{
+  "types": ["anomaly", "pattern", "event", "threshold_breach", "novel", "unknown"],
+  "defaultConfidence": 0.20,
+  "highThreshold": 0.75,
+  "mediumThreshold": 0.45,
+  "hardCap": 0.92
+}

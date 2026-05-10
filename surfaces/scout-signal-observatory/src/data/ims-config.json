@@ -1,0 +1,6 @@
+{
+  "states": ["idle", "validating", "processing", "complete", "partial_complete", "failed"],
+  "validationTimeoutMs": 5000,
+  "processingTimeoutMs": 30000,
+  "failClosedDefault": true
+}

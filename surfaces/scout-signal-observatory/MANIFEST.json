@@ -1,0 +1,44 @@
+{
+  "surface_id": "scout-signal-observatory-v1.0.0",
+  "name": "SCOUT Signal Observatory",
+  "version": "1.0.0",
+  "product": "SCOUT",
+  "owner": "SCOUT Product Team",
+  "description": "Signal analysis and operator decision support surface.",
+  "uxc_certification": {
+    "c0": false,
+    "c1": false,
+    "c2": false,
+    "c3": false,
+    "c4": false,
+    "c5": false,
+    "c6": false,
+    "c7": false,
+    "c8": false,
+    "certified_by": "pending_phase_7",
+    "certified_date": null
+  },
+  "status": "phase_5_build_complete",
+  "ims_states": [
+    "idle",
+    "validating",
+    "processing",
+    "complete",
+    "partial_complete",
+    "failed"
+  ],
+  "dominant_object": "Signal",
+  "canonical_bindings": [
+    "stardance-canon-v3.0"
+  ],
+  "uri": "/surfaces/scout-signal-observatory/v1.0.0",
+  "known_gaps": [
+    "Advanced analytics dashboard (v1.1)",
+    "LLM interpretation layer (v1.1)",
+    "Real-time feed integration (v1.1)"
+  ],
+  "created_date": "2026-05-10",
+  "modified_date": "2026-05-10",
+  "orbit_state": "signal_sense",
+  "orbitframe_version": "OrbitFrame v0.1"
+}

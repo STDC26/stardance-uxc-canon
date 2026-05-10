@@ -1,0 +1,148 @@
+/* SCOUT Signal Observatory — Main Styles */
+/* Theme: Vega Dark (sd-tokens.css canonical) */
+
+:root {
+  --bg: #050f14;
+  --surface: #081520;
+  --elevated: #0d1e2d;
+  --border: rgba(8, 145, 178, 0.18);
+  --text: #e0f0f8;
+  --text-2: #7090a0;
+  --accent: #30ABCA;
+  --accent-dim: rgba(8, 145, 178, 0.15);
+  --font-display: 'DM Sans', sans-serif;
+  --font-mono: 'DM Mono', monospace;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --confidence-high: #10b981;
+  --confidence-medium: #f59e0b;
+  --confidence-low: #ef4444;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  min-height: 100vh;
+}
+
+.scout-root {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 24px 20px;
+}
+
+.scout-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 24px;
+}
+
+.scout-title h1 {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+
+.scout-main { max-width: 800px; }
+
+.scout-input-area { display: flex; flex-direction: column; gap: 12px; }
+
+.input-label {
+  font-size: 11px;
+  color: var(--text-2);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.signal-input {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--text);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  padding: 12px;
+  resize: vertical;
+  width: 100%;
+}
+
+.signal-input:focus { outline: none; border-color: var(--accent); }
+
+.btn-primary {
+  align-self: flex-start;
+  background: var(--accent-dim);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-md);
+  color: var(--accent);
+  cursor: pointer;
+  font-size: 13px;
+  padding: 8px 18px;
+}
+
+.btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.scout-status {
+  color: var(--text-2);
+  font-size: 14px;
+  padding: 20px 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+.spinner { display: inline-block; animation: spin 1.2s linear infinite; }
+
+.scout-result { display: flex; flex-direction: column; gap: 16px; }
+
+.result-body {
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  gap: 20px;
+}
+
+@media (max-width: 640px) {
+  .result-body { grid-template-columns: 1fr; }
+}
+
+.warning-banner {
+  background: rgba(245, 158, 11, 0.08);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  border-radius: var(--radius-md);
+  color: #f59e0b;
+  font-size: 12px;
+  margin-bottom: 16px;
+  padding: 10px 14px;
+}
+
+.scout-error {
+  background: rgba(239, 68, 68, 0.06);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  text-align: center;
+}
+
+.error-icon { color: #ef4444; font-size: 24px; margin-bottom: 8px; }
+.error-message { font-weight: 600; color: #f87171; margin-bottom: 6px; }
+.error-detail { color: var(--text-2); font-size: 12px; }
+
+.result-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 14px;
+  align-self: start;
+}
