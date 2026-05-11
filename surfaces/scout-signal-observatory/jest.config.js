@@ -23,16 +23,18 @@ module.exports = {
     '!src/hooks/**'
   ],
   coverageThreshold: {
+    // Note: Jest applies "global" only to files not matched by path-specific thresholds.
+    // The Phase 5.7 modules (behaviors/governance/orchestration) are all enforced at 85%+
+    // below. Global floor covers remaining UI/component files.
     global: {
-      // Orchestration layer (33-state-machine transitions, timeout infrastructure, convenience
-      // wrappers) has many structurally-untriggered paths. Global floor reflects this.
       branches: 55,
-      functions: 68,
-      lines: 65,
-      statements: 65,
+      functions: 74,
+      lines: 62,
+      statements: 63,
     },
-    // Phase 5.7 new code meets 85%+ per spec
+    // Phase 5.7 new code meets 85%+ per spec (CC_SCOUT_14 verified)
     './src/behaviors/': { statements: 85, lines: 85 },
     './src/governance/': { statements: 85, lines: 85 },
+    './src/orchestration/': { statements: 85, lines: 85 },
   }
 };

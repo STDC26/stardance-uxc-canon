@@ -4,6 +4,7 @@
 //         PHASE_5_6_OPERATOR_ACTION_RUNTIME_SCHEMA.json (mark_as_learning)
 
 import { Signal, GovernanceEvent } from '../types/IMS';
+import { persistGovernanceEvent } from '../governance/EventLoggingSchema';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -283,4 +284,111 @@ function calculatePatternWeight(feedbackType: FeedbackType, signal: Signal): num
 
 function generateId(prefix: string): string {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+}
+
+// ─── Spec-required function signatures (CC_SCOUT_11 acceptance criteria) ─────
+
+export type LearningEvent = ReinforcementMemoryEntry;
+
+export interface Operator {
+  id: string;
+}
+
+export const LEARNING_EFFECTS: Record<FeedbackType, string> = {
+  correctly_classified: 'Reinforce pattern as valid classification',
+  misclassified: 'Reduce confidence in pattern, explore alternative',
+  pattern_important: 'Mark pattern for future attention, increase monitoring priority',
+  pattern_not_important: 'Deprioritize pattern in future signal processing',
+};
+
+export const PATTERN_WEIGHT_ADJUSTMENTS: Record<FeedbackType, number> = {
+  correctly_classified: 0.1,
+  misclassified: -0.15,
+  pattern_important: 0.2,
+  pattern_not_important: -0.2,
+};
+
+/** Composite pre-condition validator — returns per-gate booleans and allPass. */
+export function validateLearningPreConditions(
+  signal: Signal,
+  feedbackType: string
+): { feedbackTypeValid: boolean; signalHasDecision: boolean; allPass: boolean } {
+  const feedbackTypeValid = validateFeedbackType(feedbackType);
+  const signalHasDecision = validateOperatorHasDecision(signal);
+  return {
+    feedbackTypeValid,
+    signalHasDecision,
+    allPass: feedbackTypeValid && signalHasDecision,
+  };
+}
+
+/**
+ * canMarkAsLearning — check without executing.
+ * Returns first failure reason with spec-required reason codes.
+ */
+export function canMarkAsLearning(
+  signal: Signal,
+  feedbackType: string
+): { allowed: boolean; reason?: string } {
+  const checks = validateLearningPreConditions(signal, feedbackType);
+  if (!checks.feedbackTypeValid) return { allowed: false, reason: 'feedback_type_invalid' };
+  if (!checks.signalHasDecision) return { allowed: false, reason: 'signal_no_decision' };
+  return { allowed: true };
+}
+
+/**
+ * executeMarkAsLearning — execute with all governance rules enforced.
+ * Re-validates at execution boundary (fail-closed).
+ * Integrates with EventLoggingSchema canonical audit store.
+ * Returns { recorded, edgeEventId, learningEffect } per spec.
+ */
+export function executeMarkAsLearning(
+  signal: Signal,
+  operator: Operator,
+  feedbackType: string
+): { recorded: boolean; edgeEventId?: string; learningEffect?: string; reason?: string } {
+  const check = canMarkAsLearning(signal, feedbackType);
+  if (!check.allowed) {
+    return { recorded: false, reason: check.reason };
+  }
+
+  const result = markAsLearning(signal, operator.id, feedbackType);
+  if (!result.allowed || !result.edgeEvent) {
+    return { recorded: false, reason: result.reason };
+  }
+
+  // Integrate with EventLoggingSchema (canonical immutable audit store per spec)
+  if (result.governanceEvent) {
+    persistGovernanceEvent(result.governanceEvent);
+  }
+
+  return {
+    recorded: true,
+    edgeEventId: result.edgeEvent.eventId,
+    learningEffect: LEARNING_EFFECTS[feedbackType as FeedbackType],
+  };
+}
+
+/**
+ * getPatternLearningHistory — retrieve all learning feedback for a signal pattern.
+ * Returns feedbackEvents, cumulativeWeight (sum of spec weight adjustments), and
+ * effectiveness (ratio of positive to total feedback events).
+ */
+export function getPatternLearningHistory(
+  signalPattern: string
+): { feedbackEvents: LearningEvent[]; cumulativeWeight: number; effectiveness: number } {
+  const feedbackEvents = (_reinforcementMemory as ReinforcementMemoryEntry[]).filter(
+    (e) => e.signalPattern === signalPattern
+  );
+
+  const cumulativeWeight = feedbackEvents.reduce(
+    (sum, e) => sum + (PATTERN_WEIGHT_ADJUSTMENTS[e.feedbackType] ?? 0),
+    0
+  );
+
+  const positiveTypes: FeedbackType[] = ['correctly_classified', 'pattern_important'];
+  const positiveCount = feedbackEvents.filter((e) => positiveTypes.includes(e.feedbackType)).length;
+  const effectiveness = feedbackEvents.length > 0 ? positiveCount / feedbackEvents.length : 0;
+
+  return { feedbackEvents, cumulativeWeight, effectiveness };
 }

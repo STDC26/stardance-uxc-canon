@@ -6,7 +6,12 @@
 import { IMSState, EthicsGates, Signal, GovernanceEvent } from '../types/IMS';
 
 import { escalate, withdrawEscalation, EscalationResult } from '../behaviors/EscalateBehavior';
-import { investigate, InvestigationResult } from '../behaviors/InvestigateBehavior';
+import {
+  investigate,
+  InvestigationResult,
+  executeInvestigate,
+  getInvestigationResults,
+} from '../behaviors/InvestigateBehavior';
 import {
   suppress,
   revokeSuppress,
@@ -19,8 +24,10 @@ import {
   applyResearchDecision,
   ResearchResult,
   ResearchCapability,
+  executeResearch,
+  getResearchResults,
 } from '../behaviors/ResearchBehavior';
-import { markAsLearning, retractLearningEvent, LearningResult } from '../behaviors/LearningBehavior';
+import { markAsLearning, retractLearningEvent, LearningResult, Operator } from '../behaviors/LearningBehavior';
 
 import {
   canEscalate,
@@ -703,6 +710,126 @@ export class ScoutRuntimeOrchestrator {
 
   persistEvent(event: GovernanceEvent): void {
     persistGovernanceEvent(event);
+  }
+
+  // ─── Spec-required state machine API (CC_SCOUT_13 acceptance criteria) ───────
+
+  /** getCurrentState — returns current IMS state. */
+  getCurrentState(): IMSState {
+    return this.currentState;
+  }
+
+  /**
+   * canTransitionTo — check whether a transition is currently allowed.
+   * Accepts optional trigger override; defaults to matching any trigger for toState.
+   */
+  canTransitionTo(toState: IMSState, trigger?: string): boolean {
+    const candidates = this.transitions.filter(
+      (tr) => tr.from === this.currentState && tr.to === toState && (!trigger || tr.trigger === trigger)
+    );
+    return candidates.some((tr) => tr.guard(this.ctx));
+  }
+
+  /** transitionTo — public wrapper to force a state transition (used by orchestration layer). */
+  transitionTo(toState: IMSState, trigger: string): boolean {
+    return this.transition(toState, trigger);
+  }
+
+  /**
+   * getAvailableActions — return action types valid in the current state.
+   * Based on state machine transition table; only returns actions the operator can take.
+   */
+  getAvailableActions(currentState?: IMSState): string[] {
+    const state = currentState ?? this.currentState;
+    const actionTriggerMap: Record<string, string> = {
+      escalate_action: 'escalate',
+      investigate_action: 'investigate',
+      suppress_action: 'suppress',
+      research_action: 'trigger_research',
+      learning_action: 'mark_as_learning',
+    };
+
+    const available: string[] = [];
+    for (const [trigger, actionName] of Object.entries(actionTriggerMap)) {
+      const hasTransition = this.transitions.some(
+        (tr) => tr.from === state && tr.trigger === trigger
+      );
+      if (hasTransition) {
+        available.push(actionName);
+      }
+    }
+    return available;
+  }
+
+  /**
+   * handleTimeout — public timeout handler for a given state.
+   * Transitions to idle on timeout, emits timeout event, creates governance event.
+   */
+  handleTimeout(currentState: IMSState, signal?: Signal): void {
+    if (this.currentState !== currentState) return; // guard: only if still in that state
+    this.emit('state_timeout', { state: currentState, signal });
+    if (signal) {
+      createGovernanceEvent('state_timeout', signal, 'system', {
+        timedOutState: currentState,
+        failClosedApplied: true,
+        governanceGatesChecked: ['timeout_handled_gracefully'],
+      });
+    }
+    this.doReset();
+  }
+
+  // ─── Async fire-and-return methods (polling pattern) ─────────────────────────
+
+  /**
+   * doInvestigateAsync — fire-and-return investigation.
+   * Returns investigationId immediately; caller polls getInvestigationStatus().
+   */
+  doInvestigateAsync(
+    signal: Signal,
+    evidencePool: Array<{ source: string; weight: number }>
+  ): { executing: boolean; investigationId?: string; reason?: string } {
+    const govCheck = canInvestigate(signal, evidencePool);
+    if (!govCheck.allowed) {
+      return { executing: false, reason: govCheck.reason };
+    }
+
+    this.setContext({ signal });
+    this.transition('investigating', 'investigate_action');
+
+    const result = executeInvestigate(signal, evidencePool);
+    return result;
+  }
+
+  /** getInvestigationStatus — poll investigation progress by ID. */
+  getInvestigationStatus(investigationId: string) {
+    return getInvestigationResults(investigationId);
+  }
+
+  /**
+   * doResearchAsync — fire-and-return research.
+   * Returns researchId immediately; caller polls getResearchStatus().
+   */
+  doResearchAsync(
+    signal: Signal,
+    operator: Operator,
+    capability?: ResearchCapability
+  ): { researching: boolean; researchId?: string; reason?: string } {
+    const cap = capability ?? { deerflowActive: true, vectorStoreAvailable: true, externalSourcesAvailable: true };
+    const govCheck = canTriggerResearch(signal, cap);
+    if (!govCheck.allowed) {
+      return { researching: false, reason: govCheck.reason };
+    }
+
+    this.setContext({ signal, operatorId: operator.id, researchCapability: cap });
+    this.transition('researching', 'research_action');
+
+    const result = executeResearch(signal, operator);
+    return result;
+  }
+
+  /** getResearchStatus — poll research progress by ID. */
+  getResearchStatus(researchId: string) {
+    return getResearchResults(researchId);
   }
 
   // ─── Ethics gates ────────────────────────────────────────────────────────────

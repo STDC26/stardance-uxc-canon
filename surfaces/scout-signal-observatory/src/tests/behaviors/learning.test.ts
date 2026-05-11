@@ -10,6 +10,12 @@ import {
   getEdgeEvents,
   getLearningAudit,
   VALID_FEEDBACK_TYPES,
+  validateLearningPreConditions,
+  canMarkAsLearning,
+  executeMarkAsLearning,
+  getPatternLearningHistory,
+  LEARNING_EFFECTS,
+  PATTERN_WEIGHT_ADJUSTMENTS,
 } from '../../behaviors/LearningBehavior';
 import { Signal } from '../../types/IMS';
 
@@ -143,5 +149,151 @@ describe('LearningBehavior — Runtime sequence', () => {
     const audit = getLearningAudit();
     const found = audit.some((a) => a.signalId === signal.id);
     expect(found).toBe(true);
+  });
+});
+
+describe('LearningBehavior — validateLearningPreConditions (composite)', () => {
+  test('allPass true with valid feedbackType and operator decision present', () => {
+    const result = validateLearningPreConditions(makeSignal(), 'correctly_classified');
+    expect(result.feedbackTypeValid).toBe(true);
+    expect(result.signalHasDecision).toBe(true);
+    expect(result.allPass).toBe(true);
+  });
+
+  test('allPass false when feedbackType invalid', () => {
+    const result = validateLearningPreConditions(makeSignal(), 'bad_type');
+    expect(result.feedbackTypeValid).toBe(false);
+    expect(result.allPass).toBe(false);
+  });
+
+  test('allPass false when signal has no operator decision', () => {
+    const signal = makeSignal();
+    delete signal.operatorDecision;
+    const result = validateLearningPreConditions(signal, 'correctly_classified');
+    expect(result.signalHasDecision).toBe(false);
+    expect(result.allPass).toBe(false);
+  });
+
+  test('allPass false when both gates fail', () => {
+    const signal = makeSignal();
+    delete signal.operatorDecision;
+    const result = validateLearningPreConditions(signal, 'invalid_type');
+    expect(result.feedbackTypeValid).toBe(false);
+    expect(result.signalHasDecision).toBe(false);
+    expect(result.allPass).toBe(false);
+  });
+});
+
+describe('LearningBehavior — canMarkAsLearning', () => {
+  test('allowed=true with valid feedback and decision present', () => {
+    const result = canMarkAsLearning(makeSignal(), 'misclassified');
+    expect(result.allowed).toBe(true);
+  });
+
+  test('allowed=false with invalid feedback: reason=feedback_type_invalid', () => {
+    const result = canMarkAsLearning(makeSignal(), 'wrong_type');
+    expect(result.allowed).toBe(false);
+    expect(result.reason).toBe('feedback_type_invalid');
+  });
+
+  test('allowed=false when no operator decision: reason=signal_no_decision', () => {
+    const signal = makeSignal();
+    delete signal.operatorDecision;
+    const result = canMarkAsLearning(signal, 'correctly_classified');
+    expect(result.allowed).toBe(false);
+    expect(result.reason).toBe('signal_no_decision');
+  });
+
+  test('feedback_type_invalid takes priority over signal_no_decision', () => {
+    const signal = makeSignal();
+    delete signal.operatorDecision;
+    const result = canMarkAsLearning(signal, 'bad_type');
+    expect(result.allowed).toBe(false);
+    expect(result.reason).toBe('feedback_type_invalid');
+  });
+});
+
+describe('LearningBehavior — executeMarkAsLearning', () => {
+  const op = { id: 'operator-001' };
+
+  test('recorded=true with valid signal and feedback: returns edgeEventId and learningEffect', () => {
+    const signal = makeSignal();
+    const result = executeMarkAsLearning(signal, op, 'correctly_classified');
+    expect(result.recorded).toBe(true);
+    expect(result.edgeEventId).toBeDefined();
+    expect(typeof result.edgeEventId).toBe('string');
+    expect(result.learningEffect).toBe(LEARNING_EFFECTS['correctly_classified']);
+  });
+
+  test('learningEffect matches spec strings for all feedback types', () => {
+    for (const ft of VALID_FEEDBACK_TYPES) {
+      const signal = makeSignal();
+      const result = executeMarkAsLearning(signal, op, ft);
+      expect(result.recorded).toBe(true);
+      expect(result.learningEffect).toBe(LEARNING_EFFECTS[ft]);
+    }
+  });
+
+  test('recorded=false when feedbackType invalid: reason=feedback_type_invalid', () => {
+    const result = executeMarkAsLearning(makeSignal(), op, 'not_a_type');
+    expect(result.recorded).toBe(false);
+    expect(result.reason).toBe('feedback_type_invalid');
+  });
+
+  test('recorded=false when signal has no operator decision: reason=signal_no_decision', () => {
+    const signal = makeSignal();
+    delete signal.operatorDecision;
+    const result = executeMarkAsLearning(signal, op, 'pattern_important');
+    expect(result.recorded).toBe(false);
+    expect(result.reason).toBe('signal_no_decision');
+  });
+
+  test('executeMarkAsLearning does NOT mutate signal confidence', () => {
+    const signal = makeSignal({ confidence: 0.72 });
+    executeMarkAsLearning(signal, op, 'correctly_classified');
+    expect(signal.confidence).toBe(0.72);
+  });
+});
+
+describe('LearningBehavior — getPatternLearningHistory', () => {
+  test('returns empty history for unknown pattern', () => {
+    const { feedbackEvents, cumulativeWeight, effectiveness } = getPatternLearningHistory('unknown-xyz');
+    expect(feedbackEvents).toHaveLength(0);
+    expect(cumulativeWeight).toBe(0);
+    expect(effectiveness).toBe(0);
+  });
+
+  test('feedbackEvents accumulate for pattern after markAsLearning', () => {
+    const pattern = `hist-pattern-${Date.now()}`;
+    const signal = makeSignal({ pattern });
+    markAsLearning(signal, 'operator-001', 'correctly_classified');
+    const { feedbackEvents } = getPatternLearningHistory(pattern);
+    expect(feedbackEvents.length).toBeGreaterThanOrEqual(1);
+    expect(feedbackEvents[0].signalPattern).toBe(pattern);
+    expect(feedbackEvents[0].feedbackType).toBe('correctly_classified');
+  });
+
+  test('cumulativeWeight uses spec weight adjustments', () => {
+    const pattern = `weight-pattern-${Date.now()}`;
+    const signal1 = makeSignal({ pattern });
+    const signal2 = makeSignal({ pattern });
+    markAsLearning(signal1, 'operator-001', 'correctly_classified'); // +0.1
+    markAsLearning(signal2, 'operator-001', 'misclassified');        // -0.15
+    const { cumulativeWeight } = getPatternLearningHistory(pattern);
+    const expected = PATTERN_WEIGHT_ADJUSTMENTS['correctly_classified'] + PATTERN_WEIGHT_ADJUSTMENTS['misclassified'];
+    expect(Math.abs(cumulativeWeight - expected)).toBeLessThan(0.0001);
+  });
+
+  test('effectiveness is ratio of positive feedback to total', () => {
+    const pattern = `eff-pattern-${Date.now()}`;
+    const s1 = makeSignal({ pattern });
+    const s2 = makeSignal({ pattern });
+    const s3 = makeSignal({ pattern });
+    markAsLearning(s1, 'operator-001', 'correctly_classified'); // positive
+    markAsLearning(s2, 'operator-001', 'pattern_important');    // positive
+    markAsLearning(s3, 'operator-001', 'misclassified');        // negative
+    const { effectiveness } = getPatternLearningHistory(pattern);
+    // 2 positive out of 3 total
+    expect(effectiveness).toBeCloseTo(2 / 3, 5);
   });
 });
