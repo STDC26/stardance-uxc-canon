@@ -98,6 +98,27 @@ export function buildGovernanceAuditEntries(
 }
 
 /**
+ * buildCapEnforcementEntry — creates an audit entry when raw confidence exceeded
+ * the 0.92 hard cap at intake. Returns null when no cap was applied.
+ */
+export function buildCapEnforcementEntry(signal: NormalizedSignal): AuditEntry | null {
+  if (!signal.cappedAtIntake) return null;
+  return {
+    entryId:    auditId('audit-cap'),
+    signalId:   signal.signalId,
+    timestamp:  signal.timestamp,
+    actorId:    'system',
+    actionType: 'confidence_cap_enforced',
+    details: {
+      confidence:      signal.confidence,  // 0.92 (clamped value)
+      reason:          'intake_exceeded_cap',
+      cappedAtIntake:  true,
+    },
+    immutable: true as const,
+  };
+}
+
+/**
  * mergeAndSortAuditTrail — combine entries from all sources and sort
  * chronologically ascending by timestamp.  Entries are immutable; sort
  * produces a new array.
@@ -119,11 +140,13 @@ export function buildAuditTrail(
   signal: NormalizedSignal,
   governanceEvents: GovernanceEvent[] = []
 ): AuditEntry[] {
+  const capEntry = buildCapEnforcementEntry(signal);
   const entries: AuditEntry[] = [
     buildCreationEntry(signal),
     ...buildConfidenceAuditEntries(signal),
     ...buildLearningAuditEntries(signal),
     ...buildGovernanceAuditEntries(signal.signalId, governanceEvents),
+    ...(capEntry ? [capEntry] : []),
   ];
   return mergeAndSortAuditTrail(entries);
 }

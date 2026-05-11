@@ -10,6 +10,7 @@ interface ConfidenceDisplayProps {
   confidence:         number;
   baselineConfidence: number;
   capApplied:         boolean;
+  cappedAtIntake?:    boolean;
   confidenceHistory?: ConfidenceSnapshot[];
 }
 
@@ -19,9 +20,11 @@ export const ConfidenceDisplay: React.FC<ConfidenceDisplayProps> = ({
   confidence,
   baselineConfidence,
   capApplied,
+  cappedAtIntake,
   confidenceHistory,
 }) => {
   const atCap = confidence >= CONFIDENCE_HARD_CAP;
+  const showCapNote = capApplied || cappedAtIntake;
 
   return (
     <div
@@ -34,7 +37,7 @@ export const ConfidenceDisplay: React.FC<ConfidenceDisplayProps> = ({
         <span style={{ fontWeight: 600, fontSize: '18px', color: atCap ? '#f59e0b' : '#10b981' }}>
           {pct(confidence)}
         </span>
-        {capApplied && (
+        {showCapNote && (
           <span
             className="cap-note"
             data-testid="cap-note"

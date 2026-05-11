@@ -146,10 +146,13 @@ export class InMemorySignalStore implements SignalStore {
       eventId:   event.eventId,
       eventType: event.eventType,
     });
-    // Append reference to signal's governanceEventReferences
+    // Append reference to signal's governanceEventReferences (guard: may not be stored yet)
     const signal = this.signals.get(signalId);
     if (signal) {
-      signal.governanceEventReferences = [...signal.governanceEventReferences, event.eventId];
+      const existing = Array.isArray(signal.governanceEventReferences)
+        ? signal.governanceEventReferences
+        : [];
+      signal.governanceEventReferences = [...existing, event.eventId];
     }
   }
 

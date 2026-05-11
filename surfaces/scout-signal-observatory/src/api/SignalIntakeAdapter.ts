@@ -54,6 +54,8 @@ export interface CanonicalSignal {
   }>;
   governanceEventReferences: string[];
   immutable: true;
+  // Cap provenance — set at intake, propagated through normalization + persistence + UI
+  cappedAtIntake: boolean;
 }
 
 // ─── Raw input type (POST body) ───────────────────────────────────────────────
@@ -238,6 +240,7 @@ export function transformToCanonical(raw: RawSignalInput): CanonicalSignal {
   const signalId = generateId();
   const now = nowIso();
   const cappedConfidence = Math.min(raw.confidence, CONFIDENCE_HARD_CAP);
+  const cappedAtIntake = raw.confidence > CONFIDENCE_HARD_CAP;
 
   const evidence: CanonicalEvidenceItem[] = raw.evidence.map((ev) => ({
     evidenceId: generateId(),
@@ -256,6 +259,16 @@ export function transformToCanonical(raw: RawSignalInput): CanonicalSignal {
       reason: 'Signal ingested — baseline confidence locked',
     },
   ];
+
+  // Cap provenance: append explicit cap_applied entry when raw exceeded hard cap
+  if (cappedAtIntake) {
+    confidenceHistory.push({
+      confidence: cappedConfidence,
+      timestamp: now,
+      source: 'intake_cap',
+      reason: 'cap_applied',
+    });
+  }
 
   const ethicsGates: EthicsGates = {
     safety:  raw.ethicsGates?.safety  ?? true,
@@ -282,7 +295,8 @@ export function transformToCanonical(raw: RawSignalInput): CanonicalSignal {
     confidenceHistory,
     learningHistory:              [],
     governanceEventReferences:    [],
-    immutable: true as const,
+    immutable:       true as const,
+    cappedAtIntake,
   };
 }
 

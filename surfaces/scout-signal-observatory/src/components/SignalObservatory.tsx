@@ -165,6 +165,7 @@ export const SignalObservatory: React.FC<SignalObservatoryProps> = ({
                 confidence={activeSignal.confidence}
                 baselineConfidence={activeSignal.baselineConfidence}
                 capApplied={activeSignal.capApplied}
+                cappedAtIntake={activeSignal.cappedAtIntake}
                 confidenceHistory={activeSignal.confidenceHistory}
               />
               <EthicsGatesPanel ethicsGates={activeSignal.ethicsGates} />
