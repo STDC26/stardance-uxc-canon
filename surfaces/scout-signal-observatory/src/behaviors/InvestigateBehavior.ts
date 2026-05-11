@@ -217,6 +217,88 @@ export async function investigate(
   };
 }
 
+// ─── Spec-required function signatures (CC_SCOUT_08 acceptance criteria) ─────
+
+export type EvidenceSource = { source: string; weight: number };
+
+/** Composite pre-condition validator — returns per-gate booleans and allPass. */
+export function validateInvestigatePreConditions(
+  signal: Signal,
+  evidencePool: EvidenceSource[]
+): { imsState: boolean; evidenceAvailable: boolean; allPass: boolean } {
+  const imsState = validateIMSStateForInvestigation(signal.imsState);
+  const evidenceAvailable = validateEvidencePoolForInvestigation(evidencePool);
+  return { imsState, evidenceAvailable, allPass: imsState && evidenceAvailable };
+}
+
+/**
+ * canInvestigate — check without executing.
+ * Returns allowed + reason string on first failure (fail-closed).
+ */
+export function canInvestigate(
+  signal: Signal,
+  evidencePool: EvidenceSource[]
+): { allowed: boolean; reason?: string } {
+  const checks = validateInvestigatePreConditions(signal, evidencePool);
+  if (!checks.imsState) return { allowed: false, reason: 'ims_state_invalid' };
+  if (!checks.evidenceAvailable) return { allowed: false, reason: 'evidence_pool_empty' };
+  return { allowed: true };
+}
+
+// In-flight investigation store — keyed by investigationId
+const _inFlightInvestigations: Map<
+  string,
+  { status: 'running' | 'complete' | 'failed'; report?: InvestigationReport }
+> = new Map();
+
+/**
+ * executeInvestigate — starts investigation and returns IMMEDIATELY.
+ *
+ * The investigation runs asynchronously and writes results to the in-flight
+ * store. Callers poll getInvestigationResults(investigationId) for completion.
+ */
+export function executeInvestigate(
+  signal: Signal,
+  evidencePool: EvidenceSource[]
+): { executing: boolean; investigationId: string } | { executing: false; reason: string } {
+  const check = canInvestigate(signal, evidencePool);
+  if (!check.allowed) {
+    return { executing: false, reason: check.reason ?? 'precondition_failed' };
+  }
+
+  const investigationId = generateId('inv');
+  _inFlightInvestigations.set(investigationId, { status: 'running' });
+
+  // Fire and don't await — results land in the store when complete
+  const signalWithEvidence: Signal = { ...signal, evidence: evidencePool };
+  investigate(signalWithEvidence, 'system').then((result) => {
+    if (result.report) {
+      _inFlightInvestigations.set(investigationId, {
+        status: 'complete',
+        report: { ...result.report, investigationId },
+      });
+    } else {
+      _inFlightInvestigations.set(investigationId, { status: 'failed' });
+    }
+  }).catch(() => {
+    _inFlightInvestigations.set(investigationId, { status: 'failed' });
+  });
+
+  return { executing: true, investigationId };
+}
+
+/**
+ * getInvestigationResults — poll investigation progress.
+ * Returns status='running' while in-flight, 'complete' with report when done.
+ */
+export function getInvestigationResults(
+  investigationId: string
+): { status: 'running' | 'complete' | 'failed'; report?: InvestigationReport } {
+  const entry = _inFlightInvestigations.get(investigationId);
+  if (!entry) return { status: 'failed' };
+  return entry;
+}
+
 // ─── Helper functions ────────────────────────────────────────────────────────
 
 function gatherHistoricalSignals(signal: Signal): HistoricalSignal[] {

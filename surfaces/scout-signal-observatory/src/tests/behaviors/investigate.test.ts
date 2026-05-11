@@ -7,7 +7,12 @@ import {
   validateIMSStateForInvestigation,
   validateEvidencePoolForInvestigation,
   validateSignalForInvestigation,
+  validateInvestigatePreConditions,
+  canInvestigate,
+  executeInvestigate,
+  getInvestigationResults,
   getInvestigationReports,
+  EvidenceSource,
 } from '../../behaviors/InvestigateBehavior';
 import { Signal } from '../../types/IMS';
 
@@ -21,6 +26,154 @@ const makeSignal = (overrides: Partial<Signal> = {}): Signal => ({
   timestamp: Date.now(),
   operatorDecision: 'investigate',
   ...overrides,
+});
+
+const evidencePool: EvidenceSource[] = [{ source: 'Pattern Matcher', weight: 0.65 }];
+const emptyPool: EvidenceSource[] = [];
+
+describe('InvestigateBehavior — validateInvestigatePreConditions (composite)', () => {
+  test('allPass true with valid state and evidence', () => {
+    const result = validateInvestigatePreConditions(makeSignal(), evidencePool);
+    expect(result.imsState).toBe(true);
+    expect(result.evidenceAvailable).toBe(true);
+    expect(result.allPass).toBe(true);
+  });
+
+  test('allPass false with invalid IMS state', () => {
+    const result = validateInvestigatePreConditions(makeSignal({ imsState: 'idle' }), evidencePool);
+    expect(result.imsState).toBe(false);
+    expect(result.allPass).toBe(false);
+  });
+
+  test('allPass false with empty evidence pool', () => {
+    const result = validateInvestigatePreConditions(makeSignal(), emptyPool);
+    expect(result.evidenceAvailable).toBe(false);
+    expect(result.allPass).toBe(false);
+  });
+});
+
+describe('InvestigateBehavior — canInvestigate', () => {
+  test('investigateWithValidEvidencePool: allowed=true', () => {
+    const result = canInvestigate(makeSignal(), evidencePool);
+    expect(result.allowed).toBe(true);
+  });
+
+  test('investigateWithNoEvidence: allowed=false, reason=evidence_pool_empty', () => {
+    const result = canInvestigate(makeSignal(), emptyPool);
+    expect(result.allowed).toBe(false);
+    expect(result.reason).toBe('evidence_pool_empty');
+  });
+
+  test('investigateWithInvalidState: allowed=false, reason=ims_state_invalid', () => {
+    const result = canInvestigate(makeSignal({ imsState: 'idle' }), evidencePool);
+    expect(result.allowed).toBe(false);
+    expect(result.reason).toBe('ims_state_invalid');
+  });
+
+  test('investigateWithInvalidState: validating also blocked', () => {
+    const result = canInvestigate(makeSignal({ imsState: 'validating' }), evidencePool);
+    expect(result.allowed).toBe(false);
+    expect(result.reason).toBe('ims_state_invalid');
+  });
+});
+
+describe('InvestigateBehavior — executeInvestigate / getInvestigationResults (async polling)', () => {
+  test('investigationCompletesAsync: executeInvestigate returns immediately with investigationId', () => {
+    const result = executeInvestigate(makeSignal({ id: 'sig-async-001' }), evidencePool);
+    expect(result.executing).toBe(true);
+    if (result.executing) {
+      expect(result.investigationId).toBeDefined();
+      expect(typeof result.investigationId).toBe('string');
+    }
+  });
+
+  test('getInvestigationResults returns running status immediately after start', () => {
+    const start = executeInvestigate(makeSignal({ id: 'sig-poll-001' }), evidencePool);
+    expect(start.executing).toBe(true);
+    if (start.executing) {
+      const pollResult = getInvestigationResults(start.investigationId);
+      // Could be running or complete (microtask may have resolved)
+      expect(['running', 'complete']).toContain(pollResult.status);
+    }
+  });
+
+  test('getInvestigationResults returns complete with report after awaiting', async () => {
+    const start = executeInvestigate(makeSignal({ id: 'sig-complete-001' }), evidencePool);
+    expect(start.executing).toBe(true);
+    if (start.executing) {
+      // Allow the fire-and-forget promise to resolve
+      await new Promise((r) => setTimeout(r, 50));
+      const pollResult = getInvestigationResults(start.investigationId);
+      expect(pollResult.status).toBe('complete');
+      expect(pollResult.report).toBeDefined();
+      expect(pollResult.report!.signalId).toBe('sig-complete-001');
+    }
+  });
+
+  test('investigationReportGeneratedCorrectly: report has all schema fields', async () => {
+    const start = executeInvestigate(makeSignal({ id: 'sig-schema-001' }), evidencePool);
+    if (start.executing) {
+      await new Promise((r) => setTimeout(r, 50));
+      const { report } = getInvestigationResults(start.investigationId);
+      expect(report).toBeDefined();
+      expect(report!.investigationId).toBeDefined();
+      expect(report!.baselineConfidence).toBeDefined();
+      expect(Array.isArray(report!.historicalSignals)).toBe(true);
+      expect(Array.isArray(report!.patternCorrelations)).toBe(true);
+      expect(report!.contextEnrichment).toBeDefined();
+      expect(Array.isArray(report!.contradictions)).toBe(true);
+      expect(Array.isArray(report!.suggestedActions)).toBe(true);
+    }
+  });
+
+  test('investigationDoesNotMutateConfidence: confidenceAutoUpdated=false, baseline locked', async () => {
+    const start = executeInvestigate(makeSignal({ id: 'sig-nomut-001', confidence: 0.65 }), evidencePool);
+    if (start.executing) {
+      await new Promise((r) => setTimeout(r, 50));
+      const { report } = getInvestigationResults(start.investigationId);
+      expect(report!.confidenceAutoUpdated).toBe(false);
+      expect(report!.baselineConfidence).toBe(0.65);
+      expect(report!.operatorDecisionRequired).toBe(true);
+    }
+  });
+
+  test('executeInvestigate blocked when evidence pool empty: executing=false', () => {
+    const result = executeInvestigate(makeSignal(), emptyPool);
+    expect(result.executing).toBe(false);
+  });
+
+  test('executeInvestigate blocked when IMS state invalid: executing=false', () => {
+    const result = executeInvestigate(makeSignal({ imsState: 'failed' }), evidencePool);
+    expect(result.executing).toBe(false);
+  });
+
+  test('getInvestigationResults returns failed for unknown id', () => {
+    const result = getInvestigationResults('nonexistent-id');
+    expect(result.status).toBe('failed');
+  });
+
+  test('investigationShallowVsDeep: both produce valid reports', async () => {
+    const shallow = executeInvestigate(makeSignal({ id: 'sig-shallow-001' }), evidencePool);
+    const deep = executeInvestigate(makeSignal({ id: 'sig-deep-001' }), [
+      { source: 'Pattern Matcher', weight: 0.7 },
+      { source: 'Context Engine', weight: 0.6 },
+      { source: 'Historical DB', weight: 0.5 },
+    ]);
+    await new Promise((r) => setTimeout(r, 50));
+    if (shallow.executing && deep.executing) {
+      expect(getInvestigationResults(shallow.investigationId).status).toBe('complete');
+      expect(getInvestigationResults(deep.investigationId).status).toBe('complete');
+    }
+  });
+
+  test('operatorActionOptionsPresented: suggestedActions is non-empty', async () => {
+    const start = executeInvestigate(makeSignal({ id: 'sig-actions-001' }), evidencePool);
+    if (start.executing) {
+      await new Promise((r) => setTimeout(r, 50));
+      const { report } = getInvestigationResults(start.investigationId);
+      expect(report!.suggestedActions.length).toBeGreaterThan(0);
+    }
+  });
 });
 
 describe('InvestigateBehavior — Pre-condition validators', () => {
