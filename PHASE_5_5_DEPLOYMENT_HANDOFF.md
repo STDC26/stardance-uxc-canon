@@ -8,7 +8,7 @@
 
 ## Live Runtime Access
 
-**Production URL:** https://scout-phase5.vercel.app
+**Production URL:** https://scout-signal-observatory.vercel.app
 
 **How to Access:**
 1. Open URL in any browser
@@ -23,12 +23,14 @@
 | Item | Value |
 |------|-------|
 | **Branch** | feature/scout-phase5 |
-| **Commit SHA** | 2c8611f237c2483be2df438901856e14d662286f |
+| **Commit SHA** | fd914df (Phase 5.5) |
 | **Deployment Method** | Vercel CLI |
 | **Deployment Date** | 2026-05-10 |
 | **Build Command** | npm run build |
 | **Output Directory** | dist/ |
 | **Build Output** | 164.94 kB JS, 2.60 kB CSS |
+| **Vercel Project** | https://vercel.com/jason-2825s-projects/scout-signal-observatory |
+| **Vercel Inspect** | https://vercel.com/jason-2825s-projects/scout-signal-observatory/ENbitpRJfWhgEjFhwMeyKpPKKiR5 |
 
 ---
 
@@ -136,7 +138,7 @@ Phase 5 (Build):              COMPLETE
 Phase 5.5 (Deploy):           COMPLETE (THIS HANDOFF)
   Output: Live preview URL for human interaction
   Status: Mock scenarios, no backend, UAT-ready
-  Location: https://scout-phase5.vercel.app
+  Location: https://scout-signal-observatory.vercel.app
 
 Phase 6 (UAT):                PENDING
   Owner: DRJ + PTC
@@ -166,7 +168,7 @@ Phase 8 (Production):         PENDING
 ## Next Steps for Phase 6
 
 **DRJ+PTC UAT:**
-1. Open https://scout-phase5.vercel.app
+1. Open https://scout-signal-observatory.vercel.app
 2. Select each mock scenario
 3. Validate CQX sequence, confidence display, ethics gates
 4. Run 30-second insight test
