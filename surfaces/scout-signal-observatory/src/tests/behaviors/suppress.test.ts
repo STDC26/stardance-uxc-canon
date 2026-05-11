@@ -10,6 +10,10 @@ import {
   validateIMSStateForSuppression,
   validateRationaleForSuppression,
   validateNotAlreadySuppressed,
+  validateSuppressPreConditions,
+  canSuppress,
+  executeSuppress,
+  getSuppressionMemoryByPattern,
   SUPPRESSION_DURATIONS_MS,
 } from '../../behaviors/SuppressBehavior';
 import { Signal } from '../../types/IMS';
@@ -24,6 +28,157 @@ const makeSignal = (overrides: Partial<Signal> = {}): Signal => ({
   timestamp: Date.now(),
   pattern: 'test-pattern',
   ...overrides,
+});
+
+const op = { id: 'operator-001' };
+
+describe('SuppressBehavior — validateSuppressPreConditions (composite)', () => {
+  test('allPass true with valid state, rationale, and not suppressed', () => {
+    const result = validateSuppressPreConditions(makeSignal(), 'Known false positive');
+    expect(result.imsState).toBe(true);
+    expect(result.rationaleProvided).toBe(true);
+    expect(result.notAlreadySuppressed).toBe(true);
+    expect(result.allPass).toBe(true);
+  });
+
+  test('allPass false when IMS state invalid', () => {
+    const result = validateSuppressPreConditions(makeSignal({ imsState: 'idle' }), 'reason');
+    expect(result.imsState).toBe(false);
+    expect(result.allPass).toBe(false);
+  });
+
+  test('allPass false when rationale empty', () => {
+    const result = validateSuppressPreConditions(makeSignal(), '');
+    expect(result.rationaleProvided).toBe(false);
+    expect(result.allPass).toBe(false);
+  });
+
+  test('allPass false when already suppressed', () => {
+    const signal = makeSignal({ suppressedUntil: Date.now() + 60_000 });
+    const result = validateSuppressPreConditions(signal, 'reason');
+    expect(result.notAlreadySuppressed).toBe(false);
+    expect(result.allPass).toBe(false);
+  });
+});
+
+describe('SuppressBehavior — canSuppress', () => {
+  test('suppressWithValidRationale: allowed=true', () => {
+    const result = canSuppress(makeSignal(), 'Known false positive');
+    expect(result.allowed).toBe(true);
+  });
+
+  test('suppressWithoutRationale: allowed=false, reason=rationale_required', () => {
+    const result = canSuppress(makeSignal(), '');
+    expect(result.allowed).toBe(false);
+    expect(result.reason).toBe('rationale_required');
+  });
+
+  test('suppressWithInvalidState: allowed=false, reason=ims_state_invalid', () => {
+    const result = canSuppress(makeSignal({ imsState: 'idle' }), 'reason');
+    expect(result.allowed).toBe(false);
+    expect(result.reason).toBe('ims_state_invalid');
+  });
+
+  test('suppressAlreadySuppressedSignal: allowed=false, reason=already_suppressed', () => {
+    const result = canSuppress(makeSignal({ suppressedUntil: Date.now() + 60_000 }), 'reason');
+    expect(result.allowed).toBe(false);
+    expect(result.reason).toBe('already_suppressed');
+  });
+});
+
+describe('SuppressBehavior — executeSuppress', () => {
+  test('executeSuppressCreatesMemoryEntry: returns suppressed=true with suppressionId and expiresAt', () => {
+    const signal = makeSignal();
+    const result = executeSuppress(signal, op, 'Known false positive', '24_hours');
+    expect(result.suppressed).toBe(true);
+    expect(result.suppressionId).toBeDefined();
+    expect(result.expiresAt).toBeDefined();
+    // expiresAt is ISO8601
+    expect(new Date(result.expiresAt!).toISOString()).toBe(result.expiresAt);
+  });
+
+  test('suppressedSignalRetainsOriginalConfidence: confidence never mutated', () => {
+    const signal = makeSignal({ confidence: 0.72 });
+    const result = executeSuppress(signal, op, 'False positive', '24_hours');
+    expect(result.suppressed).toBe(true);
+    // Signal object confidence unchanged
+    expect(signal.confidence).toBe(0.72);
+    // Memory entry has originalConfidence locked
+    const entry = getActiveSuppressionEntry(signal.id);
+    expect(entry!.originalConfidence).toBe(0.72);
+  });
+
+  test('suppressionExpirationWorks: expiresAt approximately 24h from now', () => {
+    const signal = makeSignal();
+    const before = Date.now();
+    const result = executeSuppress(signal, op, 'Testing', '24_hours');
+    const expiresMs = new Date(result.expiresAt!).getTime();
+    expect(expiresMs).toBeGreaterThan(before + SUPPRESSION_DURATIONS_MS['24_hours'] - 500);
+    expect(expiresMs).toBeLessThan(before + SUPPRESSION_DURATIONS_MS['24_hours'] + 500);
+  });
+
+  test('suppressionCanBeRevoked: revokeSuppress removes active suppression', () => {
+    const signal = makeSignal();
+    const suppResult = executeSuppress(signal, op, 'False positive', '24_hours');
+    expect(suppResult.suppressed).toBe(true);
+    const revResult = revokeSuppress(suppResult.suppressionId!, op.id, 'Re-evaluated');
+    expect(revResult.success).toBe(true);
+    expect(isCurrentlySuppressed(signal.id)).toBe(false);
+  });
+
+  test('executeSuppress blocked without rationale: suppressed=false, reason=rationale_required', () => {
+    const result = executeSuppress(makeSignal(), op, '', '24_hours');
+    expect(result.suppressed).toBe(false);
+    expect(result.reason).toBe('rationale_required');
+  });
+
+  test('executeSuppress blocked with invalid IMS state: suppressed=false', () => {
+    const result = executeSuppress(makeSignal({ imsState: 'failed' }), op, 'reason', '24_hours');
+    expect(result.suppressed).toBe(false);
+    expect(result.reason).toBe('ims_state_invalid');
+  });
+
+  test('suppressionGovernanceEventCreated: governance event with suppression_initiated type', () => {
+    const signal = makeSignal();
+    // suppress() creates the governance event — verify via suppress() directly
+    const result = suppress(signal, op.id, 'Known false positive', 'known_false_positive');
+    expect(result.governanceEvent?.eventType).toBe('suppression_initiated');
+    expect(result.governanceEvent?.immutable).toBe(true);
+  });
+});
+
+describe('SuppressBehavior — getSuppressionMemoryByPattern', () => {
+  test('suppressionMemoryRetained: returns all entries for pattern after suppress', () => {
+    const pattern = `mem-pattern-${Date.now()}`;
+    const signal = makeSignal({ pattern });
+    suppress(signal, op.id, 'False positive', 'known_false_positive');
+    const { suppressionEntries } = getSuppressionMemoryByPattern(pattern);
+    expect(suppressionEntries.length).toBeGreaterThanOrEqual(1);
+    expect(suppressionEntries[0].signalPattern).toBe(pattern);
+  });
+
+  test('suppressionIndicatorVisible: activeSuppression present when suppression active', () => {
+    const pattern = `vis-pattern-${Date.now()}`;
+    const signal = makeSignal({ pattern });
+    suppress(signal, op.id, 'Expected behavior', 'expected_behavior');
+    const { activeSuppression } = getSuppressionMemoryByPattern(pattern);
+    expect(activeSuppression).toBeDefined();
+    expect(activeSuppression!.suppressionRationale).toBe('Expected behavior');
+    expect(activeSuppression!.originalConfidence).toBe(signal.confidence);
+  });
+
+  test('falsePositiveWeightingApplied: getFalsePositiveWeight returns 0.3 after one suppression', () => {
+    const pattern = `fp-weight-${Date.now()}`;
+    const signal = makeSignal({ pattern });
+    suppress(signal, op.id, 'FP', 'known_false_positive');
+    expect(getFalsePositiveWeight(pattern)).toBe(0.3);
+  });
+
+  test('no activeSuppression for unregistered pattern', () => {
+    const { suppressionEntries, activeSuppression } = getSuppressionMemoryByPattern('unknown-pattern-xyz');
+    expect(suppressionEntries).toHaveLength(0);
+    expect(activeSuppression).toBeUndefined();
+  });
 });
 
 describe('SuppressBehavior — Pre-condition validators', () => {

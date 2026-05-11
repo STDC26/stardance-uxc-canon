@@ -252,6 +252,85 @@ export function getFalsePositiveWeight(pattern: string): number {
   return Math.min(matches.length * 0.3, 0.9);
 }
 
+// ─── Spec-required function signatures (CC_SCOUT_09 acceptance criteria) ─────
+
+export interface Operator {
+  id: string;
+}
+
+/** Composite pre-condition validator — returns per-gate booleans and allPass. */
+export function validateSuppressPreConditions(
+  signal: Signal,
+  operatorRationale: string
+): { imsState: boolean; rationaleProvided: boolean; notAlreadySuppressed: boolean; allPass: boolean } {
+  const imsState = validateIMSStateForSuppression(signal.imsState);
+  const rationaleProvided = validateRationaleForSuppression(operatorRationale);
+  const notAlreadySuppressed = validateNotAlreadySuppressed(signal);
+  return {
+    imsState,
+    rationaleProvided,
+    notAlreadySuppressed,
+    allPass: imsState && rationaleProvided && notAlreadySuppressed,
+  };
+}
+
+/**
+ * canSuppress — check without executing.
+ * Returns first failure reason (fail-closed, AND logic).
+ */
+export function canSuppress(
+  signal: Signal,
+  operatorRationale: string
+): { allowed: boolean; reason?: string } {
+  const checks = validateSuppressPreConditions(signal, operatorRationale);
+  if (!checks.imsState) return { allowed: false, reason: 'ims_state_invalid' };
+  if (!checks.rationaleProvided) return { allowed: false, reason: 'rationale_required' };
+  if (!checks.notAlreadySuppressed) return { allowed: false, reason: 'already_suppressed' };
+  return { allowed: true };
+}
+
+/**
+ * executeSuppress — execute suppression with all governance rules enforced.
+ * Re-validates all preconditions at execution boundary (fail-closed).
+ * Returns { suppressed, suppressionId, expiresAt } per spec.
+ */
+export function executeSuppress(
+  signal: Signal,
+  operator: Operator,
+  operatorRationale: string,
+  suppressionDuration: SuppressionDuration = '24_hours'
+): { suppressed: boolean; suppressionId?: string; expiresAt?: string; reason?: string } {
+  // Re-validate at execution boundary
+  const checks = validateSuppressPreConditions(signal, operatorRationale);
+  if (!checks.imsState) return { suppressed: false, reason: 'ims_state_invalid' };
+  if (!checks.rationaleProvided) return { suppressed: false, reason: 'rationale_required' };
+  if (!checks.notAlreadySuppressed) return { suppressed: false, reason: 'already_suppressed' };
+
+  const result = suppress(signal, operator.id, operatorRationale, 'other', suppressionDuration);
+  if (!result.allowed || !result.suppressionEntry) {
+    return { suppressed: false, reason: result.reason };
+  }
+
+  return {
+    suppressed: true,
+    suppressionId: result.suppressionEntry.suppressionId,
+    expiresAt: new Date(result.suppressionEntry.suppressionExpiration).toISOString(),
+  };
+}
+
+/**
+ * getSuppressionMemory — retrieve suppression history by signal pattern.
+ * Returns all suppression entries for the pattern + active suppression if present.
+ */
+export function getSuppressionMemoryByPattern(
+  signalPattern: string
+): { suppressionEntries: SuppressionMemoryEntry[]; activeSuppression?: SuppressionMemoryEntry } {
+  const now = Date.now();
+  const entries = _suppressionMemory.filter((e) => e.signalPattern === signalPattern);
+  const activeSuppression = entries.find((e) => !e.revoked && e.suppressionExpiration > now);
+  return { suppressionEntries: entries, activeSuppression };
+}
+
 // ─── Utility ─────────────────────────────────────────────────────────────────
 
 function formatDuration(ms: number): string {
