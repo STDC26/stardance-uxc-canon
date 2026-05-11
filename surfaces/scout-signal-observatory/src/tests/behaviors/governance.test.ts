@@ -331,3 +331,177 @@ describe('GovernanceEnforcement — Human authority preservation', () => {
     expect(found).toBe(true);
   });
 });
+
+// ─── EventLoggingSchema tests (scout_runtime_event_logging_v1.0) ───────────────
+
+import {
+  persistGovernanceEvent as elsePersist,
+  getGovernanceEvent,
+  getSignalAuditTrail,
+  getOperatorActivity,
+  deleteGovernanceEvent,
+  updateGovernanceEvent,
+  getFullEventLog,
+  EVENT_TYPES,
+} from '../../governance/EventLoggingSchema';
+import { GovernanceEvent } from '../../types/IMS';
+
+const makeElsEvent = (overrides: Partial<GovernanceEvent> = {}): GovernanceEvent => ({
+  eventId: `gov-els-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+  eventType: EVENT_TYPES.ESCALATION_INITIATED,
+  eventTimestamp: Date.now(),
+  signalId: 'sig-els-001',
+  signalConfidenceAtEvent: 0.85,
+  signalMeaningAtEvent: 'Test signal',
+  operatorId: 'op-els-001',
+  actionDetails: {},
+  failClosedApplied: true,
+  governanceGatesChecked: [],
+  immutable: true,
+  ...overrides,
+});
+
+describe('EventLoggingSchema — persistGovernanceEvent', () => {
+  test('creates immutable event and returns eventId + persisted=true', () => {
+    const event = makeElsEvent({ eventId: 'gov-persist-001', signalId: 'sig-persist-001' });
+    const result = elsePersist(event);
+    expect(result.eventId).toBe('gov-persist-001');
+    expect(result.persisted).toBe(true);
+  });
+
+  test('stored event has immutable:true enforced regardless of input', () => {
+    const event = makeElsEvent({ eventId: 'gov-imm-001', signalId: 'sig-imm-001', immutable: true });
+    elsePersist(event);
+    const retrieved = getGovernanceEvent('gov-imm-001');
+    expect(retrieved?.immutable).toBe(true);
+  });
+
+  test('all event types can be persisted', () => {
+    const types = Object.values(EVENT_TYPES);
+    types.forEach((eventType, i) => {
+      const event = makeElsEvent({ eventId: `gov-type-${i}`, eventType, signalId: `sig-type-${i}` });
+      const result = elsePersist(event);
+      expect(result.persisted).toBe(true);
+    });
+  });
+});
+
+describe('EventLoggingSchema — getGovernanceEvent', () => {
+  test('retrieves event by eventId', () => {
+    const event = makeElsEvent({ eventId: 'gov-get-001', signalId: 'sig-get-001' });
+    elsePersist(event);
+    const retrieved = getGovernanceEvent('gov-get-001');
+    expect(retrieved).not.toBeNull();
+    expect(retrieved!.eventId).toBe('gov-get-001');
+  });
+
+  test('returns null for unknown eventId', () => {
+    expect(getGovernanceEvent('nonexistent-id')).toBeNull();
+  });
+
+  test('retrieved event is read-only (has immutable:true)', () => {
+    const event = makeElsEvent({ eventId: 'gov-ro-001', signalId: 'sig-ro-001' });
+    elsePersist(event);
+    const retrieved = getGovernanceEvent('gov-ro-001');
+    expect(retrieved!.immutable).toBe(true);
+  });
+});
+
+describe('EventLoggingSchema — getSignalAuditTrail', () => {
+  test('returns chronological events for a signal', () => {
+    const signalId = `sig-trail-${Date.now()}`;
+    const now = Date.now();
+    elsePersist(makeElsEvent({ eventId: `t1-${signalId}`, signalId, eventTimestamp: now + 100, eventType: EVENT_TYPES.INVESTIGATION_INITIATED }));
+    elsePersist(makeElsEvent({ eventId: `t2-${signalId}`, signalId, eventTimestamp: now + 200, eventType: EVENT_TYPES.ESCALATION_INITIATED }));
+    elsePersist(makeElsEvent({ eventId: `t3-${signalId}`, signalId, eventTimestamp: now + 50, eventType: EVENT_TYPES.SUPPRESSION_INITIATED }));
+
+    const trail = getSignalAuditTrail(signalId);
+    expect(trail.length).toBe(3);
+    // Chronological: t3 (now+50), t1 (now+100), t2 (now+200)
+    expect(trail[0].eventTimestamp).toBeLessThan(trail[1].eventTimestamp);
+    expect(trail[1].eventTimestamp).toBeLessThan(trail[2].eventTimestamp);
+  });
+
+  test('returns empty array for unknown signalId', () => {
+    expect(getSignalAuditTrail('nonexistent-signal')).toHaveLength(0);
+  });
+});
+
+describe('EventLoggingSchema — getOperatorActivity', () => {
+  test('filters events by operatorId', () => {
+    const operatorId = `op-activity-${Date.now()}`;
+    const signalId = `sig-op-${Date.now()}`;
+    elsePersist(makeElsEvent({ eventId: `oa1-${Date.now()}`, operatorId, signalId }));
+    elsePersist(makeElsEvent({ eventId: `oa2-${Date.now()}`, operatorId, signalId }));
+    elsePersist(makeElsEvent({ eventId: `oa3-${Date.now()}`, operatorId: 'other-op', signalId }));
+
+    const activity = getOperatorActivity(operatorId);
+    expect(activity.length).toBeGreaterThanOrEqual(2);
+    activity.forEach((e) => expect(e.operatorId).toBe(operatorId));
+  });
+
+  test('filters by time range when provided', () => {
+    const operatorId = `op-tr-${Date.now()}`;
+    const signalId = `sig-tr-${Date.now()}`;
+    const now = Date.now();
+    elsePersist(makeElsEvent({ eventId: `tr1-${now}`, operatorId, signalId, eventTimestamp: now - 5000 }));
+    elsePersist(makeElsEvent({ eventId: `tr2-${now}`, operatorId, signalId, eventTimestamp: now }));
+    elsePersist(makeElsEvent({ eventId: `tr3-${now}`, operatorId, signalId, eventTimestamp: now + 5000 }));
+
+    const inRange = getOperatorActivity(operatorId, { start: now - 1000, end: now + 1000 });
+    expect(inRange.length).toBe(1);
+    expect(inRange[0].eventTimestamp).toBe(now);
+  });
+});
+
+describe('EventLoggingSchema — immutability enforcement', () => {
+  test('deleteGovernanceEvent always returns success:false with reason', () => {
+    const event = makeElsEvent({ eventId: 'gov-del-001', signalId: 'sig-del-001' });
+    elsePersist(event);
+    const result = deleteGovernanceEvent('gov-del-001');
+    expect(result.success).toBe(false);
+    expect(result.reason).toBe('immutable_audit_log_cannot_delete');
+  });
+
+  test('deleteGovernanceEvent creates a governance_violation event', () => {
+    const logBefore = getFullEventLog().length;
+    deleteGovernanceEvent('gov-del-002');
+    const logAfter = getFullEventLog().length;
+    expect(logAfter).toBeGreaterThan(logBefore);
+    const violation = getFullEventLog().find(
+      (e) =>
+        e.eventType === EVENT_TYPES.GOVERNANCE_VIOLATION &&
+        (e.actionDetails as Record<string, unknown>)['violationType'] === 'attempted_audit_log_deletion'
+    );
+    expect(violation).toBeDefined();
+  });
+
+  test('updateGovernanceEvent always returns success:false with reason', () => {
+    const event = makeElsEvent({ eventId: 'gov-upd-001', signalId: 'sig-upd-001' });
+    elsePersist(event);
+    const result = updateGovernanceEvent('gov-upd-001', { signalId: 'hacked' });
+    expect(result.success).toBe(false);
+    expect(result.reason).toBe('immutable_audit_log_cannot_update');
+  });
+
+  test('updateGovernanceEvent creates a governance_violation event', () => {
+    const logBefore = getFullEventLog().length;
+    updateGovernanceEvent('gov-upd-002', { evil: 'change' });
+    const logAfter = getFullEventLog().length;
+    expect(logAfter).toBeGreaterThan(logBefore);
+    const violation = getFullEventLog().find(
+      (e) =>
+        e.eventType === EVENT_TYPES.GOVERNANCE_VIOLATION &&
+        (e.actionDetails as Record<string, unknown>)['violationType'] === 'attempted_audit_log_update'
+    );
+    expect(violation).toBeDefined();
+  });
+
+  test('original event is not modified after deletion attempt', () => {
+    const event = makeElsEvent({ eventId: 'gov-safe-001', signalId: 'sig-safe-001', signalMeaningAtEvent: 'original' });
+    elsePersist(event);
+    deleteGovernanceEvent('gov-safe-001');
+    const retrieved = getGovernanceEvent('gov-safe-001');
+    expect(retrieved!.signalMeaningAtEvent).toBe('original');
+  });
+});
