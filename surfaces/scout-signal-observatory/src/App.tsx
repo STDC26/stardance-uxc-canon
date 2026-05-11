@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { IMSState, IMSContext } from './types/IMS';
 import { CQXElement } from './types/UXC';
 import { EvidenceTrace } from './types/Evidence';
@@ -15,6 +15,7 @@ import { SignalCard } from './components/SignalCard';
 import { CQXSequence } from './components/CQXSequence';
 import { EvidencePanel } from './components/EvidencePanel';
 import { TrustRail } from './components/TrustRail';
+import { EthicsGate } from './components/EthicsGate';
 import { OperatorActionBar } from './components/OperatorActionBar';
 
 import './styles/main.css';
@@ -24,6 +25,168 @@ const gates       = new ConfidenceGates();
 const interp      = new InterpretationModel();
 const evidModel   = new EvidenceModel();
 
+// Phase 5.5: Mock scenario type
+interface MockScenario {
+  id: string;
+  name: string;
+  description?: string;
+  imsState: IMSState;
+  context?: string;
+  outcome?: string;
+  meaning?: string;
+  confidence?: number;
+  confidenceBand?: string;
+  risks?: string[];
+  recommendedActions?: string[];
+  ethicsGate?: {
+    safetyCheck: boolean;
+    delightCheck: boolean;
+    harmonyCheck: boolean;
+    reason: string;
+  };
+  error?: string;
+  errorDetails?: string;
+  recoveryPath?: string[];
+  nextAction?: string;
+  evidence?: Array<{ source: string; weight: number }>;
+}
+
+// Phase 5.5: Scenario selector bar
+const ScenarioSelector: React.FC<{
+  scenarios: MockScenario[];
+  selectedId: string;
+  onChange: (id: string) => void;
+}> = ({ scenarios, selectedId, onChange }) => (
+  <div style={{
+    padding: '10px 20px',
+    background: '#081520',
+    borderBottom: '1px solid rgba(8,145,178,0.25)',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+    flexWrap: 'wrap',
+  }}>
+    <span style={{ fontSize: '11px', color: '#7090a0', textTransform: 'uppercase', letterSpacing: '0.1em', whiteSpace: 'nowrap' }}>
+      Demo Scenario
+    </span>
+    <select
+      id="scenario-select"
+      value={selectedId}
+      onChange={e => onChange(e.target.value)}
+      style={{
+        background: '#0d1e2d',
+        border: '1px solid rgba(8,145,178,0.3)',
+        borderRadius: '6px',
+        color: '#e0f0f8',
+        fontSize: '13px',
+        padding: '6px 10px',
+        cursor: 'pointer',
+        fontFamily: 'inherit',
+        flex: 1,
+        minWidth: '220px',
+        maxWidth: '400px',
+      }}
+    >
+      <option value="">— Select a scenario —</option>
+      {scenarios.map(s => (
+        <option key={s.id} value={s.id}>{s.name}</option>
+      ))}
+    </select>
+    <span style={{ fontSize: '10px', color: '#4a6070' }}>Phase 5.5 · Mock data · UAT preview</span>
+  </div>
+);
+
+// Phase 5.5: Render mock scenario using Phase 5 components
+const MockScenarioView: React.FC<{ scenario: MockScenario }> = ({ scenario }) => {
+  if (scenario.imsState === 'failed') {
+    return (
+      <div style={{ padding: '20px', maxWidth: '800px' }}>
+        <div style={{ textAlign: 'center', padding: '24px', border: '1px solid rgba(239,68,68,0.3)', borderRadius: '12px', background: 'rgba(239,68,68,0.06)' }}>
+          <div style={{ color: '#ef4444', fontSize: '24px', marginBottom: '8px' }}>✕</div>
+          <div style={{ fontWeight: 600, color: '#f87171', marginBottom: '6px' }}>{scenario.error}</div>
+          <div style={{ color: '#7090a0', fontSize: '12px', marginBottom: '16px' }}>{scenario.errorDetails}</div>
+          {scenario.recoveryPath && (
+            <div style={{ textAlign: 'left', background: '#0d1e2d', borderRadius: '8px', padding: '12px 16px' }}>
+              <div style={{ fontSize: '11px', color: '#7090a0', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '8px' }}>Recovery Path</div>
+              <ul style={{ margin: 0, paddingLeft: '16px', color: '#d1d5db', fontSize: '13px', lineHeight: '1.8' }}>
+                {scenario.recoveryPath.map((step, i) => <li key={i}>{step}</li>)}
+              </ul>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // Build CQXElement from scenario data — all Phase 5 components used unchanged
+  const confidence = Math.min(scenario.confidence ?? 0.5, 0.92);
+  const risk = (scenario.risks ?? []).join(', ') || 'Monitor for changes';
+
+  const cqx: CQXElement = {
+    context:  scenario.context  ?? 'Signal detected in monitored environment.',
+    outcome:  scenario.outcome  ?? 'Signal classification in progress.',
+    meaning:  scenario.meaning  ?? 'Pattern identified — interpretation pending.',
+    strengthRisk: { confidence, risk },
+    action:   (scenario.recommendedActions ?? ['Review signal']).join(' · '),
+  };
+
+  const evidSources = (scenario.evidence ?? []).map((e, i) => ({
+    id: `src-${i}`,
+    name: e.source,
+    confidence: e.weight,
+    description: `Evidence source: ${e.source}`,
+  }));
+  const evidTrace: EvidenceTrace = {
+    sources: evidSources,
+    signalsUsed: evidSources.map(s => s.id),
+    sourceCount: evidSources.length,
+    canonApplied: ['stardance-canon-v3.0'],
+  };
+
+  const imsState = scenario.imsState;
+
+  return (
+    <div style={{ padding: '20px', maxWidth: '800px' }}>
+      {/* Ethics gate alert */}
+      {scenario.ethicsGate && (
+        <div style={{ marginBottom: '16px' }}>
+          <EthicsGate
+            safetyStatus={scenario.ethicsGate.safetyCheck}
+            delightStatus={scenario.ethicsGate.delightCheck}
+            harmonyStatus={scenario.ethicsGate.harmonyCheck}
+          />
+          <div style={{ marginTop: '10px', padding: '10px 14px', background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.3)', borderRadius: '6px', color: '#f59e0b', fontSize: '12px' }}>
+            ⚠ {scenario.ethicsGate.reason}
+          </div>
+        </div>
+      )}
+
+      {/* Signal description */}
+      <div style={{ fontFamily: 'monospace', fontSize: '12px', color: '#d1d5db', background: '#0a0e1a', borderRadius: '8px', padding: '10px', marginBottom: '12px', wordBreak: 'break-all' }}>
+        {scenario.description}
+      </div>
+
+      {/* Partial result warning */}
+      {imsState === 'partial_complete' && (
+        <div style={{ background: 'rgba(245,158,11,.08)', border: '1px solid rgba(245,158,11,.3)', borderRadius: '8px', color: '#f59e0b', padding: '10px 14px', marginBottom: '14px', fontSize: '12px' }}>
+          ⚠ Partial result — evidence incomplete. Review before acting.
+        </div>
+      )}
+
+      {/* CQX Sequence + sidebar — using Phase 5 components */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 200px', gap: '20px', alignItems: 'start' }}>
+        <CQXSequence cqx={cqx} imsState={imsState} onAction={(a) => console.log('[SCOUT demo] action:', a)} />
+        <div>
+          {evidSources.length > 0 && <EvidencePanel evidence={evidTrace} />}
+          <div style={{ marginTop: '12px' }}>
+            <TrustRail trust={{ score: confidence, factors: [], decayActive: false }} />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export const App: React.FC = () => {
   const machineRef = useRef(new IMSStateMachine());
   const [imsState, setImsState] = useState<IMSState>('idle');
@@ -32,7 +195,32 @@ export const App: React.FC = () => {
   const [cqx, setCqx]           = useState<CQXElement | null>(null);
   const [evidence, setEvidence] = useState<EvidenceTrace | null>(null);
 
+  // Phase 5.5: Mock scenario state
+  const [scenarios, setScenarios]           = useState<MockScenario[]>([]);
+  const [selectedScenarioId, setSelectedId] = useState('');
+  const [activeScenario, setActiveScenario] = useState<MockScenario | null>(null);
+
   const machine = machineRef.current;
+
+  // Phase 5.5: Load mock scenarios on mount
+  useEffect(() => {
+    fetch('/mock-scenarios.json')
+      .then(res => res.json())
+      .then(data => {
+        const sc: MockScenario[] = data.scenarios ?? [];
+        setScenarios(sc);
+        if (sc.length > 0) {
+          setSelectedId(sc[0].id);
+          setActiveScenario(sc[0]);
+        }
+      })
+      .catch(() => { /* no mock data — fall through to manual mode */ });
+  }, []);
+
+  const handleScenarioChange = useCallback((id: string) => {
+    setSelectedId(id);
+    setActiveScenario(scenarios.find(sc => sc.id === id) ?? null);
+  }, [scenarios]);
 
   const syncState = () => {
     setImsState(machine.getState());
@@ -43,12 +231,10 @@ export const App: React.FC = () => {
     if (!signalInput.trim()) return;
     const m = machine;
 
-    // Set input + move to validating
     m.setContext({ input: { raw: signalInput } });
     m.transition('validating');
     syncState();
 
-    // Validate — simulate async
     await new Promise((r) => setTimeout(r, 300));
     if (!signalInput.trim()) {
       m.setContext({ error: 'Signal input is empty' });
@@ -60,7 +246,6 @@ export const App: React.FC = () => {
     m.transition('processing');
     syncState();
 
-    // Process — classify + interpret
     await new Promise((r) => setTimeout(r, 600));
 
     const classification = classifier.classify(signalInput);
@@ -106,96 +291,109 @@ export const App: React.FC = () => {
   }, []);
 
   const handleAction = useCallback((_action: GoverneAction) => {
-    // Operator action routed — in v1.0 logs to console; integration in v1.1
     console.log('[SCOUT] Operator action:', _action);
   }, []);
 
   const showResult = imsState === 'complete' || imsState === 'partial_complete';
+  const displayState: IMSState = activeScenario ? activeScenario.imsState : imsState;
 
   return (
     <div className="scout-root">
+      {/* Phase 5.5: Scenario selector — shown when mock scenarios loaded */}
+      {scenarios.length > 0 && (
+        <ScenarioSelector
+          scenarios={scenarios}
+          selectedId={selectedScenarioId}
+          onChange={handleScenarioChange}
+        />
+      )}
+
       <header className="scout-header">
-        <OrbitHeader imsState={imsState} />
+        <OrbitHeader imsState={displayState} />
         <div className="scout-title">
           <h1>SCOUT Signal Observatory</h1>
-          <StateIndicator imsState={imsState} />
+          <StateIndicator imsState={displayState} />
         </div>
       </header>
 
       <main className="scout-main">
-        {/* Input area — C0: operator initiates */}
-        {imsState === 'idle' && (
-          <div className="scout-input-area">
-            <label className="input-label">Load signal input</label>
-            <textarea
-              className="signal-input"
-              value={signalInput}
-              onChange={(e) => setSignalInput(e.target.value)}
-              placeholder="Paste signal data, event log, or observation..."
-              rows={4}
-            />
-            <button
-              className="btn-primary"
-              onClick={handleSubmit}
-              disabled={!signalInput.trim()}
-            >
-              Analyse Signal
-            </button>
-          </div>
-        )}
+        {/* Phase 5.5: Demo mode — render active scenario using Phase 5 components */}
+        {activeScenario ? (
+          <MockScenarioView scenario={activeScenario} />
+        ) : (
+          <>
+            {/* Manual signal analysis — existing Phase 5 flow unchanged */}
+            {imsState === 'idle' && (
+              <div className="scout-input-area">
+                <label className="input-label">Load signal input</label>
+                <textarea
+                  className="signal-input"
+                  value={signalInput}
+                  onChange={(e) => setSignalInput(e.target.value)}
+                  placeholder="Paste signal data, event log, or observation..."
+                  rows={4}
+                />
+                <button
+                  className="btn-primary"
+                  onClick={handleSubmit}
+                  disabled={!signalInput.trim()}
+                >
+                  Analyse Signal
+                </button>
+              </div>
+            )}
 
-        {/* Processing states */}
-        {imsState === 'validating' && (
-          <div className="scout-status">
-            <span className="spinner">⟳</span> Validating signal format…
-          </div>
-        )}
-        {imsState === 'processing' && (
-          <div className="scout-status">
-            <span className="spinner">◈</span> Classifying signal…
-          </div>
-        )}
+            {imsState === 'validating' && (
+              <div className="scout-status">
+                <span className="spinner">⟳</span> Validating signal format…
+              </div>
+            )}
+            {imsState === 'processing' && (
+              <div className="scout-status">
+                <span className="spinner">◈</span> Classifying signal…
+              </div>
+            )}
 
-        {/* Complete / partial_complete — CQX sequence */}
-        {showResult && cqx && (
-          <div className="scout-result">
-            <SignalCard
-              raw={signalInput}
-              imsState={imsState}
-              classification={ctx.result as ReturnType<SignalClassifier['classify']>}
-              timestamp={ctx.timestamp}
-            />
-            <div className="result-body">
-              <div className="result-main">
-                {imsState === 'partial_complete' && (
-                  <div className="warning-banner">
-                    ⚠ Partial result — evidence incomplete. Review before acting.
+            {showResult && cqx && (
+              <div className="scout-result">
+                <SignalCard
+                  raw={signalInput}
+                  imsState={imsState}
+                  classification={ctx.result as ReturnType<SignalClassifier['classify']>}
+                  timestamp={ctx.timestamp}
+                />
+                <div className="result-body">
+                  <div className="result-main">
+                    {imsState === 'partial_complete' && (
+                      <div className="warning-banner">
+                        ⚠ Partial result — evidence incomplete. Review before acting.
+                      </div>
+                    )}
+                    <CQXSequence cqx={cqx} imsState={imsState} onAction={handleAction} />
                   </div>
-                )}
-                <CQXSequence cqx={cqx} imsState={imsState} onAction={handleAction} />
+                  <div className="result-sidebar">
+                    {evidence && <EvidencePanel evidence={evidence} />}
+                    <TrustRail trust={{ score: ctx.confidence ?? 0, factors: [], decayActive: false }} />
+                  </div>
+                </div>
               </div>
-              <div className="result-sidebar">
-                {evidence && <EvidencePanel evidence={evidence} />}
-                <TrustRail trust={{ score: ctx.confidence ?? 0, factors: [], decayActive: false }} />
+            )}
+
+            {imsState === 'failed' && (
+              <div className="scout-error">
+                <div className="error-icon">✕</div>
+                <div className="error-message">Signal unclassifiable</div>
+                <div className="error-detail">{ctx.error ?? 'Processing failed'}</div>
               </div>
-            </div>
-          </div>
-        )}
+            )}
 
-        {/* Failed */}
-        {imsState === 'failed' && (
-          <div className="scout-error">
-            <div className="error-icon">✕</div>
-            <div className="error-message">Signal unclassifiable</div>
-            <div className="error-detail">{ctx.error ?? 'Processing failed'}</div>
-          </div>
+            <OperatorActionBar
+              imsState={imsState}
+              onReset={handleReset}
+              onRetry={imsState === 'failed' ? handleReset : undefined}
+            />
+          </>
         )}
-
-        <OperatorActionBar
-          imsState={imsState}
-          onReset={handleReset}
-          onRetry={imsState === 'failed' ? handleReset : undefined}
-        />
       </main>
     </div>
   );

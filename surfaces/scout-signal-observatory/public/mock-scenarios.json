@@ -1,0 +1,82 @@
+{
+  "scenarios": [
+    {
+      "id": "high_confidence_execute",
+      "name": "Strong Signal - Execute (HIGH)",
+      "description": "Strong reinforced signal with HIGH confidence",
+      "imsState": "complete",
+      "context": "Operational signal detected in sector 7",
+      "outcome": "Signal type confirmed as operational anomaly",
+      "meaning": "Known pattern repeating with high confidence",
+      "confidence": 0.87,
+      "confidenceBand": "HIGH",
+      "risks": ["None identified"],
+      "recommendedActions": ["Escalate", "Execute", "Export"],
+      "evidence": [
+        { "source": "Sensor 1", "weight": 0.95 },
+        { "source": "Historical baseline", "weight": 0.82 }
+      ]
+    },
+    {
+      "id": "medium_confidence_watch",
+      "name": "Emerging Signal - Watch (MEDIUM)",
+      "description": "Emerging signal with MEDIUM confidence",
+      "imsState": "complete",
+      "context": "New pattern detected in sector 3",
+      "outcome": "Signal type uncertain - emerging or noise",
+      "meaning": "Pattern may indicate new activity or transient noise",
+      "confidence": 0.58,
+      "confidenceBand": "MEDIUM",
+      "risks": ["Insufficient evidence", "Could escalate"],
+      "recommendedActions": ["Watch", "Collect more evidence", "Monitor"],
+      "evidence": [
+        { "source": "Sensor 2", "weight": 0.65 }
+      ]
+    },
+    {
+      "id": "low_confidence_research",
+      "name": "Weak Signal - Research (LOW)",
+      "description": "Weak signal with LOW confidence",
+      "imsState": "complete",
+      "context": "Marginal signal detected in sector 9",
+      "outcome": "Signal origin unclear - likely noise",
+      "meaning": "Pattern too weak to classify with confidence",
+      "confidence": 0.32,
+      "confidenceBand": "LOW",
+      "risks": ["High false positive probability"],
+      "recommendedActions": ["Research", "Observe", "Log"],
+      "evidence": [
+        { "source": "Sensor 3", "weight": 0.35 }
+      ]
+    },
+    {
+      "id": "ethics_blocked",
+      "name": "Ethics Gate - Blocked",
+      "description": "Signal blocked by ethics gate",
+      "imsState": "complete",
+      "context": "High-confidence operational signal detected",
+      "outcome": "Signal type confirmed operational",
+      "meaning": "Would normally trigger escalation",
+      "confidence": 0.88,
+      "confidenceBand": "HIGH",
+      "ethicsGate": {
+        "safetyCheck": false,
+        "delightCheck": true,
+        "harmonyCheck": false,
+        "reason": "Safety and harmony gates failed - operator review required"
+      },
+      "recommendedActions": ["Review ethics gate", "Escalate for human decision"],
+      "evidence": []
+    },
+    {
+      "id": "failure_recovery",
+      "name": "Failed State - Recovery",
+      "description": "Failed state with recovery path",
+      "imsState": "failed",
+      "error": "Signal validation failed: invalid format",
+      "errorDetails": "Signal missing required timestamp field",
+      "recoveryPath": ["Verify signal format", "Retry with corrected signal"],
+      "nextAction": "Operator should verify signal includes all required fields"
+    }
+  ]
+}
