@@ -238,6 +238,72 @@ export function getEscalationLearningEffects(): ReadonlyArray<EscalationLearning
   return _learningEffects;
 }
 
+// ─── Spec-required function signatures (CC_SCOUT_07 acceptance criteria) ─────
+
+export interface Operator {
+  id: string;
+}
+
+/** Composite pre-condition validator — returns per-gate booleans and allPass. */
+export function validateEscalatePreConditions(
+  signal: Signal,
+  ethicsGates: EthicsGates
+): { confidence: boolean; ethicsGates: boolean; completeness: boolean; allPass: boolean } {
+  const confidence = validateConfidenceForEscalation(signal.confidence);
+  const gates = validateEthicsGatesForEscalation(ethicsGates);
+  const completeness = validateSignalCompletenessForEscalation(signal);
+  return { confidence, ethicsGates: gates, completeness, allPass: confidence && gates && completeness };
+}
+
+/**
+ * canEscalate — check without executing.
+ * Validates all pre-conditions; returns allowed + reason on first failure.
+ */
+export function canEscalate(
+  signal: Signal,
+  ethicsGates: EthicsGates
+): { allowed: boolean; reason?: string } {
+  const checks = validateEscalatePreConditions(signal, ethicsGates);
+  if (!checks.confidence) return { allowed: false, reason: 'confidence_below_threshold' };
+  if (!checks.ethicsGates) return { allowed: false, reason: 'ethics_gate_failed' };
+  if (!checks.completeness) return { allowed: false, reason: 'signal_incomplete' };
+  return { allowed: true };
+}
+
+/**
+ * executeEscalate — full execution with governance.
+ *
+ * CRITICAL: ethicsGates is re-validated INSIDE this function at the execution
+ * boundary, not relying on a prior canEscalate() call. This prevents bypass
+ * when gates could change between check and execution.
+ */
+export function executeEscalate(
+  signal: Signal,
+  operator: Operator,
+  ethicsGates: EthicsGates
+): { executed: boolean; governanceEventId?: string; escalationState?: string; reason?: string } {
+  // Re-validate ALL pre-conditions at execution boundary (fail-closed)
+  const checks = validateEscalatePreConditions(signal, ethicsGates);
+  if (!checks.confidence) return { executed: false, reason: 'confidence_below_threshold' };
+  if (!checks.ethicsGates) return { executed: false, reason: 'ethics_gate_failed' };
+  if (!checks.completeness) return { executed: false, reason: 'signal_incomplete' };
+
+  // Merge explicit ethicsGates into signal before calling core escalate()
+  const signalWithGates: Signal = { ...signal, ethicsGates };
+  const result = escalate(signalWithGates, operator.id);
+
+  if (!result.allowed) {
+    return { executed: false, reason: result.reason };
+  }
+
+  return {
+    executed: true,
+    governanceEventId: result.governanceEvent?.eventId,
+    escalationState: 'escalated_pending_approval',
+    reason: result.reason,
+  };
+}
+
 // ─── Utility ─────────────────────────────────────────────────────────────────
 
 function generateId(prefix: string): string {

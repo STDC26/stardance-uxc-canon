@@ -7,6 +7,9 @@ import {
   validateConfidenceForEscalation,
   validateEthicsGatesForEscalation,
   validateSignalCompletenessForEscalation,
+  validateEscalatePreConditions,
+  canEscalate,
+  executeEscalate,
   getAuditLog,
   getEscalationRecords,
 } from '../../behaviors/EscalateBehavior';
@@ -126,6 +129,132 @@ describe('EscalateBehavior — Runtime sequence', () => {
     const signal = makeSignal({ confidence: 0.88 });
     const result = escalate(signal, 'operator-001');
     expect(result.governanceEvent?.signalConfidenceAtEvent).toBe(0.88);
+  });
+});
+
+describe('EscalateBehavior — validateEscalatePreConditions (composite)', () => {
+  test('allPass true when all conditions met', () => {
+    const gates: EthicsGates = { safety: true, delight: true, harmony: true };
+    const result = validateEscalatePreConditions(makeSignal(), gates);
+    expect(result.confidence).toBe(true);
+    expect(result.ethicsGates).toBe(true);
+    expect(result.completeness).toBe(true);
+    expect(result.allPass).toBe(true);
+  });
+
+  test('allPass false when confidence below threshold', () => {
+    const gates: EthicsGates = { safety: true, delight: true, harmony: true };
+    const result = validateEscalatePreConditions(makeSignal({ confidence: 0.5 }), gates);
+    expect(result.confidence).toBe(false);
+    expect(result.allPass).toBe(false);
+  });
+
+  test('allPass false when ethics gate fails', () => {
+    const gates: EthicsGates = { safety: false, delight: true, harmony: true };
+    const result = validateEscalatePreConditions(makeSignal(), gates);
+    expect(result.ethicsGates).toBe(false);
+    expect(result.allPass).toBe(false);
+  });
+
+  test('allPass false when signal incomplete', () => {
+    const gates: EthicsGates = { safety: true, delight: true, harmony: true };
+    const result = validateEscalatePreConditions(makeSignal({ evidence: [] }), gates);
+    expect(result.completeness).toBe(false);
+    expect(result.allPass).toBe(false);
+  });
+});
+
+describe('EscalateBehavior — canEscalate', () => {
+  test('escalateWithValidHighConfidenceAndAllGatesPassing: allowed=true', () => {
+    const gates: EthicsGates = { safety: true, delight: true, harmony: true };
+    const result = canEscalate(makeSignal({ confidence: 0.85 }), gates);
+    expect(result.allowed).toBe(true);
+  });
+
+  test('escalateWithConfidenceBelowThreshold: allowed=false, reason=confidence_below_threshold', () => {
+    const gates: EthicsGates = { safety: true, delight: true, harmony: true };
+    const result = canEscalate(makeSignal({ confidence: 0.65 }), gates);
+    expect(result.allowed).toBe(false);
+    expect(result.reason).toBe('confidence_below_threshold');
+  });
+
+  test('escalateWithFailedSafetyGate: allowed=false, reason=ethics_gate_failed', () => {
+    const result = canEscalate(makeSignal(), { safety: false, delight: true, harmony: true });
+    expect(result.allowed).toBe(false);
+    expect(result.reason).toBe('ethics_gate_failed');
+  });
+
+  test('escalateWithFailedDelightGate: allowed=false, reason=ethics_gate_failed', () => {
+    const result = canEscalate(makeSignal(), { safety: true, delight: false, harmony: true });
+    expect(result.allowed).toBe(false);
+    expect(result.reason).toBe('ethics_gate_failed');
+  });
+
+  test('escalateWithFailedHarmonyGate: allowed=false, reason=ethics_gate_failed', () => {
+    const result = canEscalate(makeSignal(), { safety: true, delight: true, harmony: false });
+    expect(result.allowed).toBe(false);
+    expect(result.reason).toBe('ethics_gate_failed');
+  });
+
+  test('escalateWithIncompleteSignal: allowed=false, reason=signal_incomplete', () => {
+    const gates: EthicsGates = { safety: true, delight: true, harmony: true };
+    const result = canEscalate(makeSignal({ meaning: '' }), gates);
+    expect(result.allowed).toBe(false);
+    expect(result.reason).toBe('signal_incomplete');
+  });
+});
+
+describe('EscalateBehavior — executeEscalate (direct bypass prevention)', () => {
+  const op = { id: 'operator-001' };
+  const allPass: EthicsGates = { safety: true, delight: true, harmony: true };
+
+  test('executed=false, no governance event when confidence < 0.75', () => {
+    const logBefore = getAuditLog().length;
+    const result = executeEscalate(makeSignal({ confidence: 0.6 }), op, allPass);
+    expect(result.executed).toBe(false);
+    expect(result.reason).toBe('confidence_below_threshold');
+    expect(result.governanceEventId).toBeUndefined();
+    expect(getAuditLog().length).toBe(logBefore); // no new event
+  });
+
+  test('executed=false, no governance event when ethics gate fails', () => {
+    const logBefore = getAuditLog().length;
+    const result = executeEscalate(makeSignal(), op, { safety: false, delight: true, harmony: true });
+    expect(result.executed).toBe(false);
+    expect(result.reason).toBe('ethics_gate_failed');
+    expect(result.governanceEventId).toBeUndefined();
+    expect(getAuditLog().length).toBe(logBefore);
+  });
+
+  test('executed=false, no governance event when signal missing fields', () => {
+    const logBefore = getAuditLog().length;
+    const result = executeEscalate(makeSignal({ evidence: [] }), op, allPass);
+    expect(result.executed).toBe(false);
+    expect(result.reason).toBe('signal_incomplete');
+    expect(result.governanceEventId).toBeUndefined();
+    expect(getAuditLog().length).toBe(logBefore);
+  });
+
+  test('executed=true with governance event when all checks pass', () => {
+    const logBefore = getAuditLog().length;
+    const result = executeEscalate(makeSignal({ id: 'sig-execute-001' }), op, allPass);
+    expect(result.executed).toBe(true);
+    expect(result.escalationState).toBe('escalated_pending_approval');
+    expect(result.governanceEventId).toBeDefined();
+    expect(getAuditLog().length).toBeGreaterThan(logBefore);
+  });
+
+  test('ethics gates re-validated at execution boundary even if passed to canEscalate first', () => {
+    // Simulate bypass attempt: canEscalate passes, then gates change before executeEscalate
+    const gates: EthicsGates = { safety: true, delight: true, harmony: true };
+    const allowed = canEscalate(makeSignal(), gates);
+    expect(allowed.allowed).toBe(true);
+
+    // Gates change — executeEscalate MUST re-validate and block
+    const changedGates: EthicsGates = { safety: false, delight: true, harmony: true };
+    const result = executeEscalate(makeSignal(), op, changedGates);
+    expect(result.executed).toBe(false);
+    expect(result.reason).toBe('ethics_gate_failed');
   });
 });
 
