@@ -15,15 +15,20 @@ export const ORBIT_VISUAL_ASSET = 'stardance_orbit_signal_sense_v1';
 export const ORBITFRAME_VERSION = 'OrbitFrame v0.1';
 export const SCOUT_ORBIT_STATE = 'signal_sense';
 
-// Locked IMS → Orbit state mapping
+// Locked IMS → Orbit state mapping (Phase 5.6 extended states map to signal_sense)
 export function mapIMSToOrbit(imsState: IMSState): OrbitState {
   switch (imsState) {
-    case 'idle':             return 'idle';
-    case 'validating':       return 'validating';
-    case 'processing':       return 'processing';
-    case 'complete':         return 'signal_sense'; // Active signal sensing
-    case 'partial_complete': return 'signal_sense'; // Uncertain sensing
-    case 'failed':           return 'failed';
+    case 'idle':                       return 'idle';
+    case 'validating':                 return 'validating';
+    case 'processing':                 return 'processing';
+    case 'complete':                   return 'signal_sense'; // Active signal sensing
+    case 'partial_complete':           return 'signal_sense'; // Uncertain sensing
+    case 'failed':                     return 'failed';
+    case 'escalated_pending_approval': return 'signal_sense'; // Escalated — still sensing
+    case 'investigating':              return 'signal_sense'; // Investigation active
+    case 'suppressed_with_memory':     return 'signal_sense'; // Suppressed but tracked
+    case 'researching':                return 'signal_sense'; // Research in progress
+    case 'learning_event_recorded':    return 'signal_sense'; // Learning recorded
   }
 }
 
