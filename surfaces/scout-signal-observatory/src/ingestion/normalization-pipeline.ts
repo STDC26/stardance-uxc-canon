@@ -30,6 +30,7 @@ export interface NormalizedSignal extends Omit<CanonicalSignal, 'ethicsGates'> {
   runtimeState: 'none';
   signalCoreImmutable: true;
   eventLogAppendOnly: true;
+  schemaVersion: '1.0.1';
   // Step 3 addition
   cqx: CQXCanonical;
   // Step 4: baselineConfidence is already on CanonicalSignal; capApplied added
@@ -99,6 +100,22 @@ export function validateAndParseSignal(input: CanonicalSignal): ParseResult {
     errors.push('evidence_required');
   }
 
+  // RC-06: Per-evidence trustLevel bounds (0.0–1.0)
+  const VALID_SOURCE_TYPES = ['sensor', 'log', 'external_intelligence', 'operator_input', 'manual'] as const;
+  if (Array.isArray(input.evidence)) {
+    for (let i = 0; i < input.evidence.length; i++) {
+      const ev = input.evidence[i];
+      const tl = ev?.source?.trustLevel;
+      if (typeof tl !== 'number' || tl < 0 || tl > 1) {
+        errors.push(`evidence[${i}].source.trustLevel_out_of_bounds`);
+      }
+      // RC-07: sourceType enum check
+      if (!VALID_SOURCE_TYPES.includes(ev?.sourceType as typeof VALID_SOURCE_TYPES[number])) {
+        errors.push(`evidence[${i}].sourceType_invalid`);
+      }
+    }
+  }
+
   // Type check: source must have id and name
   if (input.source && (typeof input.source.id !== 'string' || typeof input.source.name !== 'string')) {
     errors.push('source_fields_invalid_type');
@@ -118,6 +135,7 @@ export interface EnrichedSignal extends CanonicalSignal {
   runtimeState: 'none';
   signalCoreImmutable: true;
   eventLogAppendOnly: true;
+  schemaVersion: '1.0.1';
 }
 
 export function enrichSignal(signal: CanonicalSignal): EnrichedSignal {
@@ -127,6 +145,7 @@ export function enrichSignal(signal: CanonicalSignal): EnrichedSignal {
     runtimeState: 'none' as const,
     signalCoreImmutable: true as const,
     eventLogAppendOnly: true as const,
+    schemaVersion: '1.0.1' as const,
   };
 }
 

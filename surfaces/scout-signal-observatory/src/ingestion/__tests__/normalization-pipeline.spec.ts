@@ -80,6 +80,86 @@ describe('NormalizationPipeline — Step 1: validateAndParseSignal', () => {
   });
 });
 
+// ─── Step 1: RC-06 trustLevel bounds (3 tests) ───────────────────────────────
+
+describe('NormalizationPipeline — Step 1: RC-06 trustLevel bounds', () => {
+  test('trustLevel out of bounds (> 1.0) returns error', () => {
+    const signal = makeCanonical({
+      evidence: [{ sourceType: 'sensor', source: { name: 'M', trustLevel: 1.5 } }],
+    });
+    const result = validateAndParseSignal(signal);
+    expect(result.valid).toBe(false);
+    expect(result.errors.some(e => e.includes('trustLevel_out_of_bounds'))).toBe(true);
+  });
+
+  test('trustLevel out of bounds (< 0.0) returns error', () => {
+    const signal = makeCanonical({
+      evidence: [{ sourceType: 'sensor', source: { name: 'M', trustLevel: -0.1 } }],
+    });
+    const result = validateAndParseSignal(signal);
+    expect(result.valid).toBe(false);
+    expect(result.errors.some(e => e.includes('trustLevel_out_of_bounds'))).toBe(true);
+  });
+
+  test('trustLevel exactly 0.0 and 1.0 are valid (boundary)', () => {
+    const signal0 = makeCanonical({
+      evidence: [{ sourceType: 'sensor', source: { name: 'M', trustLevel: 0.0 } }],
+    });
+    const signal1 = makeCanonical({
+      evidence: [{ sourceType: 'sensor', source: { name: 'M', trustLevel: 1.0 } }],
+    });
+    expect(validateAndParseSignal(signal0).valid).toBe(true);
+    expect(validateAndParseSignal(signal1).valid).toBe(true);
+  });
+});
+
+// ─── Step 1: RC-07 sourceType enum (3 tests) ─────────────────────────────────
+
+describe('NormalizationPipeline — Step 1: RC-07 sourceType enum', () => {
+  test('invalid sourceType returns error', () => {
+    const signal = makeCanonical({
+      evidence: [{ sourceType: 'unknown_type' as never, source: { name: 'M', trustLevel: 0.8 } }],
+    });
+    const result = validateAndParseSignal(signal);
+    expect(result.valid).toBe(false);
+    expect(result.errors.some(e => e.includes('sourceType_invalid'))).toBe(true);
+  });
+
+  test("'manual' sourceType is accepted as valid", () => {
+    const signal = makeCanonical({
+      evidence: [{ sourceType: 'manual' as never, source: { name: 'M', trustLevel: 0.8 } }],
+    });
+    const result = validateAndParseSignal(signal);
+    expect(result.valid).toBe(true);
+  });
+
+  test("all canonical sourceTypes are accepted (sensor, log, external_intelligence, operator_input)", () => {
+    const types = ['sensor', 'log', 'external_intelligence', 'operator_input'] as const;
+    for (const sourceType of types) {
+      const signal = makeCanonical({
+        evidence: [{ sourceType, source: { name: 'M', trustLevel: 0.8 } }],
+      });
+      expect(validateAndParseSignal(signal).valid).toBe(true);
+    }
+  });
+});
+
+// ─── Step 2: RC-08 schemaVersion (2 tests) ───────────────────────────────────
+
+describe('NormalizationPipeline — Step 2: RC-08 schemaVersion', () => {
+  test("enrichSignal sets schemaVersion to '1.0.1'", () => {
+    const canonical = makeCanonical();
+    const enriched = enrichSignal(canonical);
+    expect(enriched.schemaVersion).toBe('1.0.1');
+  });
+
+  test("normalized signal carries schemaVersion '1.0.1' through full pipeline", () => {
+    const result = normalizationPipeline(makeCanonical());
+    expect(result.success).toBe(true);
+    expect((result.signal as unknown as Record<string, unknown>).schemaVersion).toBe('1.0.1');
+  });
+});
+
 // ─── Step 3: transformToCQX (4 tests) ────────────────────────────────────────
 
 describe('NormalizationPipeline — Step 3: transformToCQX', () => {
