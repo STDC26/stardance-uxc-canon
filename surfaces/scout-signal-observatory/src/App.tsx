@@ -1,9 +1,10 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
-import { IMSState, IMSContext } from './types/IMS';
+import { IMSState, IMSContext, Signal } from './types/IMS';
 import { CQXElement } from './types/UXC';
 import { EvidenceTrace } from './types/Evidence';
 import { GoverneAction } from './types/Decision';
 import { IMSStateMachine } from './logic/ims-state-machine';
+import { ScoutRuntimeOrchestrator } from './orchestration/ScoutRuntimeOrchestrator';
 import { ConfidenceGates } from './logic/confidence-gates';
 import { SignalClassifier } from './logic/signal-classifier';
 import { InterpretationModel } from './logic/interpretation-model';
@@ -96,8 +97,24 @@ const ScenarioSelector: React.FC<{
   </div>
 );
 
+// Convert MockScenario to IMS Signal for orchestrator consumption
+function convertScenarioToSignal(scenario: MockScenario): Signal {
+  return {
+    id: scenario.id,
+    type: 'anomaly',
+    confidence: Math.min(scenario.confidence ?? 0.5, 0.92),
+    meaning: scenario.meaning ?? 'Signal detected in monitored environment',
+    evidence: scenario.evidence ?? [{ source: 'Detector', weight: 0.72 }],
+    imsState: scenario.imsState,
+    timestamp: Date.now(),
+    ethicsGates: scenario.ethicsGate
+      ? { safety: scenario.ethicsGate.safetyCheck, delight: scenario.ethicsGate.delightCheck, harmony: scenario.ethicsGate.harmonyCheck }
+      : { safety: true, delight: true, harmony: true },
+  };
+}
+
 // Phase 5.5: Render mock scenario using Phase 5 components
-const MockScenarioView: React.FC<{ scenario: MockScenario }> = ({ scenario }) => {
+const MockScenarioView: React.FC<{ scenario: MockScenario; onAction: (action: GoverneAction) => void }> = ({ scenario, onAction }) => {
   if (scenario.imsState === 'failed') {
     return (
       <div style={{ padding: '20px', maxWidth: '800px' }}>
@@ -175,7 +192,7 @@ const MockScenarioView: React.FC<{ scenario: MockScenario }> = ({ scenario }) =>
 
       {/* CQX Sequence + sidebar — using Phase 5 components */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 200px', gap: '20px', alignItems: 'start' }}>
-        <CQXSequence cqx={cqx} imsState={imsState} onAction={(a) => console.log('[SCOUT demo] action:', a)} />
+        <CQXSequence cqx={cqx} imsState={imsState} onAction={onAction} />
         <div>
           {evidSources.length > 0 && <EvidencePanel evidence={evidTrace} />}
           <div style={{ marginTop: '12px' }}>
@@ -189,11 +206,13 @@ const MockScenarioView: React.FC<{ scenario: MockScenario }> = ({ scenario }) =>
 
 export const App: React.FC = () => {
   const machineRef = useRef(new IMSStateMachine());
+  const orchestratorRef = useRef(new ScoutRuntimeOrchestrator());
   const [imsState, setImsState] = useState<IMSState>('idle');
   const [ctx, setCtx]           = useState<IMSContext>({ timestamp: Date.now() });
   const [signalInput, setSignalInput] = useState('');
   const [cqx, setCqx]           = useState<CQXElement | null>(null);
   const [evidence, setEvidence] = useState<EvidenceTrace | null>(null);
+  const [currentSignal, setCurrentSignal] = useState<Signal | null>(null);
 
   // Phase 5.5: Mock scenario state
   const [scenarios, setScenarios]           = useState<MockScenario[]>([]);
@@ -212,6 +231,9 @@ export const App: React.FC = () => {
         if (sc.length > 0) {
           setSelectedId(sc[0].id);
           setActiveScenario(sc[0]);
+          const signal = convertScenarioToSignal(sc[0]);
+          orchestratorRef.current.loadSignal(signal);
+          setCurrentSignal(signal);
         }
       })
       .catch(() => { /* no mock data — fall through to manual mode */ });
@@ -219,7 +241,13 @@ export const App: React.FC = () => {
 
   const handleScenarioChange = useCallback((id: string) => {
     setSelectedId(id);
-    setActiveScenario(scenarios.find(sc => sc.id === id) ?? null);
+    const sc = scenarios.find(s => s.id === id) ?? null;
+    setActiveScenario(sc);
+    if (sc) {
+      const signal = convertScenarioToSignal(sc);
+      orchestratorRef.current.loadSignal(signal);
+      setCurrentSignal(signal);
+    }
   }, [scenarios]);
 
   const syncState = () => {
@@ -290,9 +318,62 @@ export const App: React.FC = () => {
     syncState();
   }, []);
 
-  const handleAction = useCallback((_action: GoverneAction) => {
-    console.log('[SCOUT] Operator action:', _action);
-  }, []);
+  const handleAction = useCallback(async (actionId: GoverneAction) => {
+    const signal = currentSignal;
+    if (!signal) return;
+    const orchestrator = orchestratorRef.current;
+    const operatorId = 'operator-uat-001';
+
+    switch (actionId) {
+      case 'escalate': {
+        const result = await orchestrator.doEscalate(signal, operatorId);
+        if (result.success) {
+          const updated: Signal = { ...signal, imsState: result.newState };
+          setCurrentSignal(updated);
+          setActiveScenario(prev => prev ? { ...prev, imsState: result.newState } : prev);
+        }
+        break;
+      }
+      case 'investigate': {
+        const result = orchestrator.doInvestigateAsync(signal, signal.evidence);
+        if (result.executing) {
+          const updated: Signal = { ...signal, imsState: 'investigating' };
+          setCurrentSignal(updated);
+          setActiveScenario(prev => prev ? { ...prev, imsState: 'investigating' } : prev);
+        }
+        break;
+      }
+      case 'suppress': {
+        const result = orchestrator.doSuppress(signal, operatorId, 'Suppressed by operator');
+        if (result.success) {
+          const updated: Signal = { ...signal, imsState: result.newState };
+          setCurrentSignal(updated);
+          setActiveScenario(prev => prev ? { ...prev, imsState: result.newState } : prev);
+        }
+        break;
+      }
+      case 'trigger_research': {
+        const result = orchestrator.doResearchAsync(signal, { id: operatorId });
+        if (result.researching) {
+          const updated: Signal = { ...signal, imsState: 'researching' };
+          setCurrentSignal(updated);
+          setActiveScenario(prev => prev ? { ...prev, imsState: 'researching' } : prev);
+        }
+        break;
+      }
+      case 'mark_learning_signal': {
+        const result = orchestrator.doMarkAsLearning(signal, operatorId, 'correctly_classified');
+        if (result.success) {
+          const updated: Signal = { ...signal, imsState: result.newState };
+          setCurrentSignal(updated);
+          setActiveScenario(prev => prev ? { ...prev, imsState: result.newState } : prev);
+        }
+        break;
+      }
+      default:
+        break;
+    }
+  }, [currentSignal]);
 
   const showResult = imsState === 'complete' || imsState === 'partial_complete';
   const displayState: IMSState = activeScenario ? activeScenario.imsState : imsState;
@@ -319,7 +400,7 @@ export const App: React.FC = () => {
       <main className="scout-main">
         {/* Phase 5.5: Demo mode — render active scenario using Phase 5 components */}
         {activeScenario ? (
-          <MockScenarioView scenario={activeScenario} />
+          <MockScenarioView scenario={activeScenario} onAction={handleAction} />
         ) : (
           <>
             {/* Manual signal analysis — existing Phase 5 flow unchanged */}
