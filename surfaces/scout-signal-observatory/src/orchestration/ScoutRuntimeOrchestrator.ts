@@ -4,6 +4,8 @@
 //         PHASE_5_6_STATE_MACHINE_EXTENSION.md
 
 import { IMSState, EthicsGates, Signal, GovernanceEvent } from '../types/IMS';
+import { InMemorySignalStore } from '../persistence/signal-store';
+import type { NormalizedSignal } from '../ingestion/normalization-pipeline';
 
 import { escalate, withdrawEscalation, EscalationResult } from '../behaviors/EscalateBehavior';
 import {
@@ -89,6 +91,22 @@ export class ScoutRuntimeOrchestrator {
   private ctx: OrchestratorContext = {};
   private listeners: Map<string, Array<(data: unknown) => void>> = new Map();
   private timeoutHandles: Map<string, ReturnType<typeof setTimeout>> = new Map();
+
+  // Optional persistence store — injected at construction for testability.
+  private store: InMemorySignalStore | null = null;
+
+  constructor(store?: InMemorySignalStore) {
+    if (store) this.store = store;
+  }
+
+  // Persist a normalized signal snapshot after a behavior executes.
+  private async persistSignalSnapshot(signal: NormalizedSignal, event?: GovernanceEvent): Promise<void> {
+    if (!this.store) return;
+    await this.store.storeSignal(signal);
+    if (event) {
+      this.store.appendGovernanceEvent(signal.signalId, event);
+    }
+  }
 
   // Extended state machine — all 11 states with guarded transitions
   private transitions: StateTransition[] = [
@@ -459,6 +477,14 @@ export class ScoutRuntimeOrchestrator {
       persistGovernanceEvent(result.governanceEvent);
     }
 
+    // Persistence: store updated signal snapshot with governance event
+    if (this.store && result.governanceEvent) {
+      await this.persistSignalSnapshot(
+        signal as unknown as NormalizedSignal,
+        result.governanceEvent
+      );
+    }
+
     return {
       success: true,
       previousState: prev,
@@ -553,6 +579,14 @@ export class ScoutRuntimeOrchestrator {
 
     this.transition('suppressed_with_memory', 'suppress_action');
 
+    // Persistence: fire-and-forget (doSuppress is sync)
+    if (this.store && result.governanceEvent) {
+      void this.persistSignalSnapshot(
+        signal as unknown as NormalizedSignal,
+        result.governanceEvent
+      );
+    }
+
     return {
       success: true,
       previousState: prev,
@@ -645,6 +679,14 @@ export class ScoutRuntimeOrchestrator {
         reason: result.reason,
         operatorFeedback: result.operatorFeedback,
       };
+    }
+
+    // Persistence: fire-and-forget (doMarkAsLearning is sync)
+    if (this.store && result.governanceEvent) {
+      void this.persistSignalSnapshot(
+        signal as unknown as NormalizedSignal,
+        result.governanceEvent
+      );
     }
 
     return {
