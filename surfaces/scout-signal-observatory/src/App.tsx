@@ -1,6 +1,5 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { IMSState, IMSContext, Signal } from './types/IMS';
-import { CQXElement } from './types/UXC';
 import { EvidenceTrace } from './types/Evidence';
 import { GoverneAction } from './types/Decision';
 import { IMSStateMachine } from './logic/ims-state-machine';
@@ -9,6 +8,9 @@ import { ConfidenceGates } from './logic/confidence-gates';
 import { SignalClassifier } from './logic/signal-classifier';
 import { InterpretationModel } from './logic/interpretation-model';
 import { EvidenceModel } from './logic/evidence-model';
+import type { CQXCanonical } from './ingestion/cqx-generator';
+import { globalSignalStore } from './persistence/signal-store';
+import type { StoredSignal } from './persistence/signal-store';
 
 import { OrbitHeader } from './components/OrbitHeader';
 import { StateIndicator } from './components/StateIndicator';
@@ -18,6 +20,7 @@ import { EvidencePanel } from './components/EvidencePanel';
 import { TrustRail } from './components/TrustRail';
 import { EthicsGate } from './components/EthicsGate';
 import { OperatorActionBar } from './components/OperatorActionBar';
+import { SignalObservatory } from './components/SignalObservatory';
 
 import './styles/main.css';
 
@@ -135,15 +138,15 @@ const MockScenarioView: React.FC<{ scenario: MockScenario; onAction: (action: Go
     );
   }
 
-  // Build CQXElement from scenario data — all Phase 5 components used unchanged
+  // Build CQXCanonical from scenario data — v1.0.1 canonical shape
   const confidence = Math.min(scenario.confidence ?? 0.5, 0.92);
-  const risk = (scenario.risks ?? []).join(', ') || 'Monitor for changes';
+  const riskAssessment = (scenario.risks ?? []).join(', ') || 'Monitor for changes';
 
-  const cqx: CQXElement = {
+  const cqx: CQXCanonical = {
     context:  scenario.context  ?? 'Signal detected in monitored environment.',
     outcome:  scenario.outcome  ?? 'Signal classification in progress.',
     meaning:  scenario.meaning  ?? 'Pattern identified — interpretation pending.',
-    strengthRisk: { confidence, risk },
+    strengthAndRisk: { confidence, riskAssessment },
     action:   (scenario.recommendedActions ?? ['Review signal']).join(' · '),
   };
 
@@ -206,11 +209,11 @@ const MockScenarioView: React.FC<{ scenario: MockScenario; onAction: (action: Go
 
 export const App: React.FC = () => {
   const machineRef = useRef(new IMSStateMachine());
-  const orchestratorRef = useRef(new ScoutRuntimeOrchestrator());
+  const orchestratorRef = useRef(new ScoutRuntimeOrchestrator(globalSignalStore));
   const [imsState, setImsState] = useState<IMSState>('idle');
   const [ctx, setCtx]           = useState<IMSContext>({ timestamp: Date.now() });
   const [signalInput, setSignalInput] = useState('');
-  const [cqx, setCqx]           = useState<CQXElement | null>(null);
+  const [cqx, setCqx]           = useState<CQXCanonical | null>(null);
   const [evidence, setEvidence] = useState<EvidenceTrace | null>(null);
   const [currentSignal, setCurrentSignal] = useState<Signal | null>(null);
 
@@ -218,6 +221,16 @@ export const App: React.FC = () => {
   const [scenarios, setScenarios]           = useState<MockScenario[]>([]);
   const [selectedScenarioId, setSelectedId] = useState('');
   const [activeScenario, setActiveScenario] = useState<MockScenario | null>(null);
+
+  // CC_SCOUT_19: Live signal store — populated when real signals are ingested
+  const [hasStoreSignals, setHasStoreSignals] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      const live = await globalSignalStore.getSignalsByImsState('processing');
+      if (live.length > 0) setHasStoreSignals(true);
+    })();
+  }, []);
 
   const machine = machineRef.current;
 
@@ -285,11 +298,11 @@ export const App: React.FC = () => {
     const ev = evidModel.synthesize(evidSources);
     const confidence = gates.calculate(classification.confidence, evidModel.combineConfidence(evidSources));
 
-    const cqxData: CQXElement = {
+    const cqxData: CQXCanonical = {
       context:  'Operational signal detected in monitored environment',
       outcome:  `${classification.label} — raw input: "${signalInput.slice(0, 60)}"`,
       meaning:  interpretation.meaning,          // RC-02: meaning is separate
-      strengthRisk: { confidence, risk: interpretation.riskLevel },
+      strengthAndRisk: { confidence, riskAssessment: interpretation.riskLevel },
       action:   interpretation.recommendedAction, // RC-02: action is distinct
     };
 
@@ -375,6 +388,24 @@ export const App: React.FC = () => {
     }
   }, [currentSignal]);
 
+  // CC_SCOUT_19: Action handler for real signals from the store
+  const handleStoreAction = useCallback(async (action: GoverneAction, signal: StoredSignal) => {
+    const operatorId = 'operator-uat-001';
+    const orch = orchestratorRef.current;
+    const runtimeSignal = signal as unknown as Signal;
+    switch (action) {
+      case 'escalate':          await orch.doEscalate(runtimeSignal, operatorId); break;
+      case 'investigate':       orch.doInvestigateAsync(runtimeSignal, runtimeSignal.evidence); break;
+      case 'suppress':          orch.doSuppress(runtimeSignal, operatorId, 'Suppressed by operator'); break;
+      case 'trigger_research':  orch.doResearchAsync(runtimeSignal, { id: operatorId }); break;
+      case 'mark_learning_signal': orch.doMarkAsLearning(runtimeSignal, operatorId, 'correctly_classified'); break;
+      default: break;
+    }
+    // Refresh store signal state after action
+    const updated = await globalSignalStore.getSignal(signal.signalId);
+    if (updated) await globalSignalStore.updateRuntimeState(signal.signalId, orch.getState(), operatorId);
+  }, []);
+
   const showResult = imsState === 'complete' || imsState === 'partial_complete';
   const displayState: IMSState = activeScenario ? activeScenario.imsState : imsState;
 
@@ -398,8 +429,14 @@ export const App: React.FC = () => {
       </header>
 
       <main className="scout-main">
-        {/* Phase 5.5: Demo mode — render active scenario using Phase 5 components */}
-        {activeScenario ? (
+        {/* CC_SCOUT_19: Live signal mode — real signals from store take priority */}
+        {hasStoreSignals ? (
+          <SignalObservatory
+            store={globalSignalStore}
+            onAction={handleStoreAction}
+            operatorId="operator-uat-001"
+          />
+        ) : activeScenario ? (
           <MockScenarioView scenario={activeScenario} onAction={handleAction} />
         ) : (
           <>

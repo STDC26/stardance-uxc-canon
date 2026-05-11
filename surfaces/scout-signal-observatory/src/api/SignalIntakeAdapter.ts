@@ -8,7 +8,7 @@ import { CONFIDENCE_HARD_CAP } from '../logic/confidence-gates';
 
 // ─── Canonical signal types (SPEC-02) ────────────────────────────────────────
 
-export type EvidenceSourceType = 'sensor' | 'log' | 'external_intelligence' | 'operator_input';
+export type EvidenceSourceType = 'sensor' | 'log' | 'external_intelligence' | 'operator_input' | 'manual';
 
 export interface CanonicalEvidenceItem {
   evidenceId: string;
@@ -115,6 +115,7 @@ export const VALID_EVIDENCE_SOURCE_TYPES: EvidenceSourceType[] = [
   'log',
   'external_intelligence',
   'operator_input',
+  'manual',     // CC_SCOUT_17 RC-07 + CC_SCOUT_19: operator-seeded UAT signals
 ];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────

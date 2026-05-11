@@ -1,14 +1,15 @@
 import React from 'react';
-import { CQXElement } from '../types/UXC';
 import { ConfidenceBand } from './ConfidenceBand';
 import { ActionPanel } from './ActionPanel';
 import { IMSState } from '../types/IMS';
 import { GoverneAction } from '../types/Decision';
+import type { CQXCanonical } from '../ingestion/cqx-generator';
 
 // RC-01: CQX = Conviction Equation Experience
 // RC-02: Meaning ≠ Action (separate cognitive operations — LOCKED ORDER)
+// v1.0.1: accepts CQXCanonical (strengthAndRisk) — canonical schema only
 interface CQXSequenceProps {
-  cqx: CQXElement;
+  cqx: CQXCanonical;
   imsState: IMSState;
   onAction: (action: GoverneAction) => void;
 }
@@ -59,8 +60,8 @@ export const CQXSequence: React.FC<CQXSequenceProps> = ({ cqx, imsState, onActio
     <div className="cqx-element cqx-strength" style={{ ...elementStyle, borderLeftColor: '#1e3a5f' }}>
       <div style={labelStyle}>4 · How Strong Is This</div>
       <ConfidenceBand
-        confidence={cqx.strengthRisk.confidence}
-        risks={cqx.strengthRisk.risk}
+        confidence={cqx.strengthAndRisk.confidence}
+        risks={cqx.strengthAndRisk.riskAssessment}
       />
     </div>
 
@@ -71,7 +72,7 @@ export const CQXSequence: React.FC<CQXSequenceProps> = ({ cqx, imsState, onActio
         {cqx.action}
       </p>
       {/* RC-02: Action panel is the operator's domain — distinct from meaning */}
-      <ActionPanel imsState={imsState} confidence={cqx.strengthRisk.confidence} onAction={onAction} />
+      <ActionPanel imsState={imsState} confidence={cqx.strengthAndRisk.confidence} onAction={onAction} />
     </div>
 
   </div>

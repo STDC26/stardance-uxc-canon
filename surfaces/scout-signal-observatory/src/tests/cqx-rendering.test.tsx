@@ -6,15 +6,16 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { CQXSequence } from '../components/CQXSequence';
-import { CQXElement } from '../types/UXC';
+import type { CQXCanonical } from '../ingestion/cqx-generator';
 
-const mockCQX: CQXElement = {
+// v1.0.1 canonical shape — strengthAndRisk replaces strengthRisk
+const mockCQX: CQXCanonical = {
   context: 'Operational signal in monitored sector 7.',
   outcome: 'Anomalous signal — baseline deviation +3.2σ.',
   meaning: 'An unusual pattern deviates from baseline operational behaviour.',
-  strengthRisk: {
+  strengthAndRisk: {
     confidence: 0.87,
-    risk: 'Elevated — deviation may indicate system or environmental change',
+    riskAssessment: 'Elevated — deviation may indicate system or environmental change',
   },
   action: 'Escalate for immediate investigation',
 };
