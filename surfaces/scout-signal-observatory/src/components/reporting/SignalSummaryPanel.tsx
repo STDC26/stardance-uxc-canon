@@ -7,6 +7,7 @@ import React from 'react';
 import type { StoredSignal } from '../../persistence/signal-store';
 import type { IMSState } from '../../types/IMS';
 import { CONFIDENCE_HARD_CAP } from '../../logic/confidence-gates';
+import { SpiderTopology } from './SpiderTopology';
 
 // ─── Trust posture derivation ─────────────────────────────────────────────────
 
@@ -124,8 +125,12 @@ export const SignalSummaryPanel: React.FC<SignalSummaryPanelProps> = ({ signal }
         <EthicsStatusBadge ethicsGates={signal.ethicsGates} />
       </div>
 
-      {/* Row 2: source + timestamp */}
-      <div style={{ fontSize: '11px', color: '#4a6070', display: 'flex', gap: '14px', flexWrap: 'wrap' }}>
+        {/* Row 2: topology + metadata */}
+      <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px', marginBottom: '10px' }}>
+        <SpiderTopology signal={signal} size={160} />
+        <div style={{ flex: 1 }}>
+          {/* source + timestamp */}
+          <div style={{ fontSize: '11px', color: '#4a6070', display: 'flex', gap: '14px', flexWrap: 'wrap' }}>
         <span>Source: <span style={{ color: '#7090a0' }}>{signal.source.name}</span></span>
         <span>·</span>
         <span>Trust: <span style={{ color: '#7090a0' }}>{Math.round(signal.source.trustLevel * 100)}%</span></span>
@@ -133,6 +138,8 @@ export const SignalSummaryPanel: React.FC<SignalSummaryPanelProps> = ({ signal }
         <span>Ingested: <span style={{ color: '#7090a0' }}>{new Date(signal.timestamp).toLocaleString()}</span></span>
         <span>·</span>
         <span style={{ color: '#374151' }}>ID: {signal.signalId.slice(0, 12)}…</span>
+          </div>
+        </div>
       </div>
     </div>
   );
