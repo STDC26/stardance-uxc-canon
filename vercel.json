@@ -1,0 +1,9 @@
+{
+  "buildCommand": "cd surfaces/scout-signal-observatory && npm install && npm run build",
+  "outputDirectory": "surfaces/scout-signal-observatory/dist",
+  "installCommand": "echo 'install handled in buildCommand'",
+  "framework": null,
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}
