@@ -23,6 +23,7 @@ import { EthicsGate } from './components/EthicsGate';
 import { OperatorActionBar } from './components/OperatorActionBar';
 import { SignalObservatory } from './components/SignalObservatory';
 import { ReportingRoute }   from './routes/reporting';
+import { seedSignalStore }  from './utils/seed-signal-store';
 
 import './styles/main.css';
 
@@ -209,14 +210,27 @@ const MockScenarioView: React.FC<{ scenario: MockScenario; onAction: (action: Go
   );
 };
 
-export const App: React.FC = () => (
-  <Routes>
-    {/* /scout/reporting/:signalId — Reporting Surface (Build 2) */}
-    <Route path="/scout/reporting/:signalId" element={<ReportingRouteWrapper />} />
-    {/* / — Main SCOUT Observatory */}
-    <Route path="*" element={<ScoutMainApp />} />
-  </Routes>
-);
+export const App: React.FC = () => {
+  // Pre-seed globalSignalStore with mock scenarios on every app mount.
+  // Uses scenario.id as signalId so /reporting/:id URLs are predictable.
+  useEffect(() => {
+    fetch('/mock-scenarios.json')
+      .then(r => r.json())
+      .then(data => seedSignalStore(data.scenarios ?? []))
+      .catch(() => {});
+  }, []);
+
+  return (
+    <Routes>
+      {/* /scout/reporting/:signalId — Reporting Surface (Build 2) */}
+      <Route path="/scout/reporting/:signalId" element={<ReportingRouteWrapper />} />
+      {/* /reporting/:signalId — short alias for UAT convenience */}
+      <Route path="/reporting/:signalId"       element={<ReportingRouteWrapper />} />
+      {/* / — Main SCOUT Observatory */}
+      <Route path="*" element={<ScoutMainApp />} />
+    </Routes>
+  );
+};
 
 // ─── Reporting Route wrapper — reads :signalId param ─────────────────────────
 
