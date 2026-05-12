@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
+import { Routes, Route, useParams } from 'react-router-dom';
 import { IMSState, IMSContext, Signal } from './types/IMS';
 import { EvidenceTrace } from './types/Evidence';
 import { GoverneAction } from './types/Decision';
@@ -21,6 +22,7 @@ import { TrustRail } from './components/TrustRail';
 import { EthicsGate } from './components/EthicsGate';
 import { OperatorActionBar } from './components/OperatorActionBar';
 import { SignalObservatory } from './components/SignalObservatory';
+import { ReportingRoute }   from './routes/reporting';
 
 import './styles/main.css';
 
@@ -207,7 +209,31 @@ const MockScenarioView: React.FC<{ scenario: MockScenario; onAction: (action: Go
   );
 };
 
-export const App: React.FC = () => {
+export const App: React.FC = () => (
+  <Routes>
+    {/* /scout/reporting/:signalId — Reporting Surface (Build 2) */}
+    <Route path="/scout/reporting/:signalId" element={<ReportingRouteWrapper />} />
+    {/* / — Main SCOUT Observatory */}
+    <Route path="*" element={<ScoutMainApp />} />
+  </Routes>
+);
+
+// ─── Reporting Route wrapper — reads :signalId param ─────────────────────────
+
+const ReportingRouteWrapper: React.FC = () => {
+  const { signalId = '' } = useParams<{ signalId: string }>();
+  return (
+    <ReportingRoute
+      signalId={signalId}
+      store={globalSignalStore}
+      operatorId="operator-uat-001"
+    />
+  );
+};
+
+// ─── Main SCOUT app (all original logic) ─────────────────────────────────────
+
+const ScoutMainApp: React.FC = () => {
   const machineRef = useRef(new IMSStateMachine());
   const orchestratorRef = useRef(new ScoutRuntimeOrchestrator(globalSignalStore));
   const [imsState, setImsState] = useState<IMSState>('idle');
@@ -217,12 +243,9 @@ export const App: React.FC = () => {
   const [evidence, setEvidence] = useState<EvidenceTrace | null>(null);
   const [currentSignal, setCurrentSignal] = useState<Signal | null>(null);
 
-  // Phase 5.5: Mock scenario state
   const [scenarios, setScenarios]           = useState<MockScenario[]>([]);
   const [selectedScenarioId, setSelectedId] = useState('');
   const [activeScenario, setActiveScenario] = useState<MockScenario | null>(null);
-
-  // CC_SCOUT_19: Live signal store — populated when real signals are ingested
   const [hasStoreSignals, setHasStoreSignals] = useState(false);
 
   useEffect(() => {
@@ -234,7 +257,6 @@ export const App: React.FC = () => {
 
   const machine = machineRef.current;
 
-  // Phase 5.5: Load mock scenarios on mount
   useEffect(() => {
     fetch('/mock-scenarios.json')
       .then(res => res.json())
@@ -249,7 +271,7 @@ export const App: React.FC = () => {
           setCurrentSignal(signal);
         }
       })
-      .catch(() => { /* no mock data — fall through to manual mode */ });
+      .catch(() => {});
   }, []);
 
   const handleScenarioChange = useCallback((id: string) => {
@@ -271,11 +293,9 @@ export const App: React.FC = () => {
   const handleSubmit = useCallback(async () => {
     if (!signalInput.trim()) return;
     const m = machine;
-
     m.setContext({ input: { raw: signalInput } });
     m.transition('validating');
     syncState();
-
     await new Promise((r) => setTimeout(r, 300));
     if (!signalInput.trim()) {
       m.setContext({ error: 'Signal input is empty' });
@@ -283,12 +303,9 @@ export const App: React.FC = () => {
       syncState();
       return;
     }
-
     m.transition('processing');
     syncState();
-
     await new Promise((r) => setTimeout(r, 600));
-
     const classification = classifier.classify(signalInput);
     const interpretation  = interp.interpret(classification.type, classification.confidence);
     const evidSources = [
@@ -297,17 +314,14 @@ export const App: React.FC = () => {
     ];
     const ev = evidModel.synthesize(evidSources);
     const confidence = gates.calculate(classification.confidence, evidModel.combineConfidence(evidSources));
-
     const cqxData: CQXCanonical = {
       context:  'Operational signal detected in monitored environment',
       outcome:  `${classification.label} — raw input: "${signalInput.slice(0, 60)}"`,
-      meaning:  interpretation.meaning,          // RC-02: meaning is separate
+      meaning:  interpretation.meaning,
       strengthAndRisk: { confidence, riskAssessment: interpretation.riskLevel },
-      action:   interpretation.recommendedAction, // RC-02: action is distinct
+      action:   interpretation.recommendedAction,
     };
-
     m.setContext({ result: classification, confidence });
-
     if (confidence >= 0.75) {
       m.transition('complete');
     } else if (confidence >= 0.45) {
@@ -317,7 +331,6 @@ export const App: React.FC = () => {
       m.setContext({ error: 'Confidence too low for reliable classification' });
       m.transition('failed');
     }
-
     setCqx(cqxData);
     setEvidence(ev);
     syncState();
@@ -336,7 +349,6 @@ export const App: React.FC = () => {
     if (!signal) return;
     const orchestrator = orchestratorRef.current;
     const operatorId = 'operator-uat-001';
-
     switch (actionId) {
       case 'escalate': {
         const result = await orchestrator.doEscalate(signal, operatorId);
@@ -383,25 +395,22 @@ export const App: React.FC = () => {
         }
         break;
       }
-      default:
-        break;
+      default: break;
     }
   }, [currentSignal]);
 
-  // CC_SCOUT_19: Action handler for real signals from the store
   const handleStoreAction = useCallback(async (action: GoverneAction, signal: StoredSignal) => {
     const operatorId = 'operator-uat-001';
     const orch = orchestratorRef.current;
     const runtimeSignal = signal as unknown as Signal;
     switch (action) {
-      case 'escalate':          await orch.doEscalate(runtimeSignal, operatorId); break;
-      case 'investigate':       orch.doInvestigateAsync(runtimeSignal, runtimeSignal.evidence); break;
-      case 'suppress':          orch.doSuppress(runtimeSignal, operatorId, 'Suppressed by operator'); break;
-      case 'trigger_research':  orch.doResearchAsync(runtimeSignal, { id: operatorId }); break;
+      case 'escalate':             await orch.doEscalate(runtimeSignal, operatorId); break;
+      case 'investigate':          orch.doInvestigateAsync(runtimeSignal, runtimeSignal.evidence); break;
+      case 'suppress':             orch.doSuppress(runtimeSignal, operatorId, 'Suppressed by operator'); break;
+      case 'trigger_research':     orch.doResearchAsync(runtimeSignal, { id: operatorId }); break;
       case 'mark_learning_signal': orch.doMarkAsLearning(runtimeSignal, operatorId, 'correctly_classified'); break;
       default: break;
     }
-    // Refresh store signal state after action
     const updated = await globalSignalStore.getSignal(signal.signalId);
     if (updated) await globalSignalStore.updateRuntimeState(signal.signalId, orch.getState(), operatorId);
   }, []);
