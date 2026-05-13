@@ -1,0 +1,18 @@
+{
+  "name": "spike-flash",
+  "version": "0.1.0",
+  "description": "SPIKE_FLASH — rapid signal reconnaissance runtime for SCOUT",
+  "private": true,
+  "scripts": {
+    "spike": "ts-node spike-flash.ts",
+    "spike:config": "ts-node spike-flash.ts spike-flash-config.json"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.54.0"
+  },
+  "devDependencies": {
+    "ts-node": "^10.9.2",
+    "typescript": "^5.4.0",
+    "@types/node": "^20.0.0"
+  }
+}

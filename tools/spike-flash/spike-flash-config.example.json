@@ -1,0 +1,28 @@
+{
+  "objective": "Validate that the market is experiencing real pain around AI signal overload and decision latency — and that SignalFirst / SCOUT addresses a genuine operational need.",
+  "signal_thesis": "Operators, founders, and teams using AI tools are overwhelmed by signal volume but lack systems for conviction-grade interpretation — creating demand for a focused signal intelligence layer.",
+  "target_keywords": [
+    "AI decision fatigue",
+    "signal overload",
+    "too many AI tools",
+    "workflow intelligence",
+    "operator AI pain",
+    "competitive intelligence AI",
+    "AI noise vs signal",
+    "AI strategy clarity",
+    "founder intelligence",
+    "market sensing AI"
+  ],
+  "source_types": [
+    "Reddit",
+    "LinkedIn",
+    "AI_communities",
+    "operator_discussions",
+    "founder_discussions",
+    "enterprise_AI_discourse",
+    "workflow_forums",
+    "careers_pages"
+  ],
+  "market_or_domain": "B2B SaaS / AI tooling / Founder and operator intelligence tools",
+  "desired_decision": "Should we prioritise the SPIKE_FLASH go-to-market motion for founders and boards, or pivot to enterprise operator workflows first?"
+}
