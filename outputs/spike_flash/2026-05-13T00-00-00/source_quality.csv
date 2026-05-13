@@ -1,0 +1,8 @@
+habitat,quality,signal_count,rationale
+Reddit,rich,6,"High-density authentic operator pain signals across multiple relevant subreddits with strong keyword alignment and consistent thesis validation."
+LinkedIn,rich,5,"Strong signal from operators, CPOs, and transformation leads describing AI governance fatigue and decision latency with high specificity."
+careers_pages,rich,4,"Emerging AI governance and decision intelligence job titles confirm market recognition of the gap and enterprise intent to address it."
+review_sites,moderate,3,"Useful signal-to-noise complaint patterns in reviews but lower density than conversational habitats."
+AI_communities,rich,5,"Founder and operator communities explicitly naming the SignalFirst gap and searching for alternatives to traditional CI tools."
+founder_discussions,rich,6,"Highest thesis alignment — founders naming the signal layer problem in their own language, unprompted."
+enterprise_AI_discourse,moderate,4,"Analyst and practitioner research confirms decision latency as primary AI ROI blocker but discourse is slower and less specific than founder habitats."
