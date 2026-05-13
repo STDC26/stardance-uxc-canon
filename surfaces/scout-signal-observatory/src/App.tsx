@@ -211,14 +211,19 @@ const MockScenarioView: React.FC<{ scenario: MockScenario; onAction: (action: Go
 };
 
 export const App: React.FC = () => {
-  // Pre-seed globalSignalStore with mock scenarios on every app mount.
-  // Uses scenario.id as signalId so /reporting/:id URLs are predictable.
+  // Gate rendering until seed completes — prevents ReportingRoute race condition
+  // where store.getSignal() fires before seedSignalStore() has stored the signals.
+  const [seedReady, setSeedReady] = useState(false);
+
   useEffect(() => {
     fetch('/mock-scenarios.json')
       .then(r => r.json())
       .then(data => seedSignalStore(data.scenarios ?? []))
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => setSeedReady(true));
   }, []);
+
+  if (!seedReady) return null;
 
   return (
     <Routes>
